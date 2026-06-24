@@ -89,6 +89,9 @@ proto/triage/v1/triage.proto   # the cross-language contract (Connect-RPC)
 gen/triage/v1/                 # generated Go + Connect stubs (buf generate)
 internal/graph/                # the pure node-selection algorithm + tests
 internal/api/                  # adapter: graph.Result -> wire Board
+internal/engine/               # owns the projection; recompute + streaming hub
+internal/server/               # Connect handlers over the engine
+cmd/triage-server/             # runnable entrypoint (empty board until sync)
 ```
 
 ## Codegen
@@ -112,6 +115,7 @@ The service (`triage.v1.TriageService`) exposes `GetBoard` (unary snapshot),
 - [x] Core node-selection algorithm + tests
 - [x] Connect-RPC schema for the render set + "mark epic active/parked"
 - [x] Adapter from the algorithm result to the wire board
+- [x] Projection engine + streaming hub (`internal/engine`)
+- [x] Connect server: `GetBoard` / `StreamBoard` / `SetEpicState` + entrypoint
 - [ ] GitHub sync layer (REST backfill + webhook updates) building the projection
-- [ ] Connect server: implement `GetBoard` / `StreamBoard` / `SetEpicState`
 - [ ] Frontend graph visualization (TS client generated from the same proto)
