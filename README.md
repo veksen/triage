@@ -82,10 +82,36 @@ comment block atop `internal/graph/select.go`.
 The visual form is deliberately left to iterate; the data contract (the render
 set above) is what's fixed.
 
+## Layout
+
+```
+proto/triage/v1/triage.proto   # the cross-language contract (Connect-RPC)
+gen/triage/v1/                 # generated Go + Connect stubs (buf generate)
+internal/graph/                # the pure node-selection algorithm + tests
+internal/api/                  # adapter: graph.Result -> wire Board
+```
+
+## Codegen
+
+The wire types are generated from `proto/` with [buf](https://buf.build) and the
+Connect/protobuf Go plugins. The generated code is committed so the module
+builds without the toolchain installed.
+
+```
+make tools      # install pinned buf + protoc-gen-go + protoc-gen-connect-go
+make generate   # buf lint + buf generate
+make test       # go test ./...
+```
+
+The service (`triage.v1.TriageService`) exposes `GetBoard` (unary snapshot),
+`StreamBoard` (server-streaming, full snapshots on change), and `SetEpicState`
+(the one write: drive or park an epic).
+
 ## Roadmap
 
 - [x] Core node-selection algorithm + tests
-- [ ] Connect-RPC schema for the render set + "mark epic active/parked"
+- [x] Connect-RPC schema for the render set + "mark epic active/parked"
+- [x] Adapter from the algorithm result to the wire board
 - [ ] GitHub sync layer (REST backfill + webhook updates) building the projection
-- [ ] Server-streaming push of the render set
-- [ ] Frontend graph visualization
+- [ ] Connect server: implement `GetBoard` / `StreamBoard` / `SetEpicState`
+- [ ] Frontend graph visualization (TS client generated from the same proto)

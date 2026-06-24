@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package triage.v1;
+
+// TriageService serves the derived dependency board: a graph computed from
+// GitHub issues, their sub-issue hierarchy, and native dependencies, induced by
+// the set of currently-active epics. The service is read-mostly; the only write
+// is toggling an epic's active state.
+service TriageService {
+  // GetBoard returns the current render set: one view per active epic.
+  rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {}
+
+  // StreamBoard pushes the render set whenever it changes (a GitHub event
+  // recomputes it). The first message is the current snapshot. These are full
+  // snapshots, not deltas — the set is small, so the stream is idempotent and
+  // self-healing across reconnects.
+  rpc StreamBoard(StreamBoardRequest) returns (stream StreamBoardResponse) {}
+
+  // SetEpicState is the single write path: drive an epic or park it.
+  rpc SetEpicState(SetEpicStateRequest) returns (SetEpicStateResponse) {}
+}
+
+message GetBoardRequest {}
+message StreamBoardRequest {}
+
+message GetBoardResponse {
+  Board board = 1;
+}
+
+message StreamBoardResponse {
+  Board board = 1;
+}
+
+// Board is the full render set the frontend draws.
+message Board {
+  repeated EpicView epics = 1;
+}
+
+// EpicStatus mirrors the algorithm's per-epic outcome.
+enum EpicStatus {
+  EPIC_STATUS_UNSPECIFIED = 0;
+  EPIC_STATUS_ACTIVE = 1; // has ready work to pick up
+  EPIC_STATUS_STALLED = 2; // open work, but all of it is blocked — see blockers
+  EPIC_STATUS_EMPTY = 3; // no open ladder work (done or unplanned)
+}
+
+// EpicView is one active epic's slice of the board.
+message EpicView {
+  IssueRef epic = 1;
+  EpicStatus status = 2;
+  repeated Node ready = 3; // ranked ready leaves, when ACTIVE
+  repeated Node blockers = 4; // actionable open blockers, when STALLED
+}
+
+// Node is a rendered issue plus the context and flags the frontend needs.
+message Node {
+  IssueRef issue = 1;
+  // leverage: how many open in-scope issues this node transitively unblocks.
+  int32 leverage = 2;
+  // ancestry: hierarchy path toward the epic, nearest-first, for "why this".
+  repeated IssueRef ancestry = 3;
+  // serves_epics: every active epic (by issue number) whose scope includes this
+  // node, so the client can dedupe a shared vertex while showing all owners.
+  repeated int64 serves_epics = 4;
+  bool multi_epic = 5;
+  bool high_leverage = 6;
+}
+
+// IssueRef is the displayable identity of an issue.
+message IssueRef {
+  int64 number = 1; // GitHub issue number
+  string title = 2;
+  string url = 3;
+  bool open = 4;
+}
+
+message SetEpicStateRequest {
+  int64 epic_number = 1;
+  // active=true drives the epic (clears the parked marker); active=false parks
+  // it, removing its ladder from the board.
+  bool active = 2;
+}
+
+message SetEpicStateResponse {
+  EpicStatus status = 1; // resulting status after the change
+}
