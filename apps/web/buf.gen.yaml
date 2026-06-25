@@ -1,0 +1,15 @@
+# TS codegen for the web client. Kept separate from the repo-root buf.gen.yaml
+# (which runs the Go plugins) so frontend devs don't need the Go toolchain:
+#
+#   npm run generate   # -> src/gen/triage/v1/triage_pb.ts
+#
+# protoc-gen-es v2 emits the service descriptor alongside the messages, so no
+# separate Connect plugin is needed — the runtime client is built from the
+# generated descriptor via @connectrpc/connect's createClient.
+version: v2
+inputs:
+  - directory: ../../proto
+plugins:
+  - local: protoc-gen-es
+    out: src/gen
+    opt: target=ts

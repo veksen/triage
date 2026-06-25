@@ -94,6 +94,7 @@ internal/server/               # Connect handlers over the engine
 internal/github/               # pure GitHub payload -> graph mutation mapping
 internal/sync/                 # REST backfill + HMAC-verified webhook handler
 cmd/triage-server/             # runnable entrypoint (backfill + webhook + serve)
+apps/web/                      # Vite + React client; TS client generated from proto
 ```
 
 ## Codegen
@@ -120,4 +121,5 @@ The service (`triage.v1.TriageService`) exposes `GetBoard` (unary snapshot),
 - [x] Projection engine + streaming hub (`internal/engine`)
 - [x] Connect server: `GetBoard` / `StreamBoard` / `SetEpicState` + entrypoint
 - [x] GitHub sync layer: REST backfill + HMAC-verified webhook updates
-- [ ] Frontend graph visualization (TS client generated from the same proto)
+- [x] Frontend tracer slice: generated TS client + live board view (`apps/web`)
+- [ ] Frontend graph visualization (elkjs/React Flow over the same board)
