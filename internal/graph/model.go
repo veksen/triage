@@ -106,6 +106,72 @@ func (g *Graph) AddDependency(blocked, blocker IssueID) {
 	g.blocks[blocker] = appendUnique(g.blocks[blocker], blocked)
 }
 
+// RemoveHierarchy drops the parent -> child sub-issue link, if present. The
+// child's upward pointer is cleared only when it still points at this parent,
+// so re-parenting (remove old, add new in either order) never loses the link.
+// Idempotent: removing an absent edge is a no-op, which keeps webhook handlers
+// safe to replay.
+func (g *Graph) RemoveHierarchy(parent, child IssueID) {
+	g.children[parent] = removeID(g.children[parent], child)
+	if len(g.children[parent]) == 0 {
+		delete(g.children, parent)
+	}
+	if g.parent[child] == parent {
+		delete(g.parent, child)
+	}
+}
+
+// RemoveDependency drops the "blocked blocked-by blocker" edge, if present.
+// Idempotent, like RemoveHierarchy.
+func (g *Graph) RemoveDependency(blocked, blocker IssueID) {
+	g.blockedBy[blocked] = removeID(g.blockedBy[blocked], blocker)
+	if len(g.blockedBy[blocked]) == 0 {
+		delete(g.blockedBy, blocked)
+	}
+	g.blocks[blocker] = removeID(g.blocks[blocker], blocked)
+	if len(g.blocks[blocker]) == 0 {
+		delete(g.blocks, blocker)
+	}
+}
+
+// RemoveIssue deletes an issue and detaches every edge touching it, so a deleted
+// GitHub issue leaves no dangling references behind. Closing an issue should use
+// AddIssue with State=Closed instead — only true deletion calls this.
+func (g *Graph) RemoveIssue(id IssueID) {
+	delete(g.issues, id)
+
+	// Hierarchy: detach from its parent and orphan its children.
+	if p, ok := g.parent[id]; ok {
+		g.children[p] = removeID(g.children[p], id)
+		if len(g.children[p]) == 0 {
+			delete(g.children, p)
+		}
+		delete(g.parent, id)
+	}
+	for _, c := range g.children[id] {
+		if g.parent[c] == id {
+			delete(g.parent, c)
+		}
+	}
+	delete(g.children, id)
+
+	// Dependencies: detach both directions.
+	for _, b := range g.blockedBy[id] {
+		g.blocks[b] = removeID(g.blocks[b], id)
+		if len(g.blocks[b]) == 0 {
+			delete(g.blocks, b)
+		}
+	}
+	delete(g.blockedBy, id)
+	for _, b := range g.blocks[id] {
+		g.blockedBy[b] = removeID(g.blockedBy[b], id)
+		if len(g.blockedBy[b]) == 0 {
+			delete(g.blockedBy, b)
+		}
+	}
+	delete(g.blocks, id)
+}
+
 // Issue returns the issue and whether it exists.
 func (g *Graph) Issue(id IssueID) (Issue, bool) {
 	i, ok := g.issues[id]
@@ -168,4 +234,19 @@ func appendUnique(s []IssueID, v IssueID) []IssueID {
 		}
 	}
 	return append(s, v)
+}
+
+// removeID returns s without v, filtering in place. An empty result is returned
+// as nil so callers can delete the map entry cleanly.
+func removeID(s []IssueID, v IssueID) []IssueID {
+	out := s[:0]
+	for _, x := range s {
+		if x != v {
+			out = append(out, x)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
