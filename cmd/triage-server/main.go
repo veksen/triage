@@ -44,7 +44,8 @@ func main() {
 	}
 
 	g := graph.NewGraph()
-	if owner != "" && repo != "" {
+	switch {
+	case owner != "" && repo != "":
 		client := triagesync.NewClient(owner, repo, os.Getenv("TRIAGE_GITHUB_TOKEN"))
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		built, err := triagesync.Backfill(ctx, client, mapper)
@@ -54,6 +55,9 @@ func main() {
 		}
 		g = built
 		log.Printf("backfilled board from %s/%s", owner, repo)
+	case os.Getenv("TRIAGE_DEV_SEED") != "":
+		g = devSeed()
+		log.Print("loaded dev seed graph (TRIAGE_DEV_SEED set)")
 	}
 
 	eng := engine.New(g, engine.Config{RepoURL: repoURL})
