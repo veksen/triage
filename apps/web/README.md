@@ -38,9 +38,22 @@ hosting.
 subscribes to `StreamBoard` and **replaces** the cached board on every push —
 the server sends full snapshots, so the client never reconciles deltas.
 
+## Views
+
+Two views over the same cached `Board` (one `StreamBoard` subscription, toggled
+in the top bar):
+
+- **graph** (default) — the dependency DAG. **elkjs** computes a layered
+  top-down layout (raw d3 can't lay out a DAG); **d3** renders it — `d3-shape`
+  for the curved edges, `d3-zoom` for pan/zoom. Epics colour by status, ready
+  leaves hang off solid hierarchy edges, and a stalled epic's blocker hangs off
+  a dashed "blocks" edge. `src/graph/buildBoardGraph.ts` is the pure,
+  unit-tested Board→DAG transform.
+- **list** — the structured column-per-epic detail view, for scanning exact
+  ready/blocker items.
+
 ## Next (visual iteration)
 
-The current screen is a structured column-per-epic view of the fixed `Board`
-contract. The planned next step is a real graph layout (elkjs / dagre feeding
-React Flow / `@xyflow`) — "it's a graph, not a board". The data plumbing it will
-draw from is already settled here; only the visual form changes.
+Possible refinements: collapse/expand deep ancestry, fit-to-selection, edge
+labels for leverage, and code-splitting the elkjs bundle (it dominates the JS
+payload). The data contract is fixed; these are all presentation changes.

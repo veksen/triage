@@ -122,4 +122,4 @@ The service (`triage.v1.TriageService`) exposes `GetBoard` (unary snapshot),
 - [x] Connect server: `GetBoard` / `StreamBoard` / `SetEpicState` + entrypoint
 - [x] GitHub sync layer: REST backfill + HMAC-verified webhook updates
 - [x] Frontend tracer slice: generated TS client + live board view (`apps/web`)
-- [ ] Frontend graph visualization (elkjs/React Flow over the same board)
+- [x] Frontend graph visualization: elkjs DAG layout + d3 rendering (pan/zoom)

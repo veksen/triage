@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { useBoard } from "../useBoard";
-import { EpicColumn } from "./EpicColumn";
+import { GraphView } from "./GraphView";
+import { ListView } from "./ListView";
 
-// BoardView is the whole screen: the render set is one column per active epic.
-// It is a structured view of the fixed Board contract — the graph-layout
-// visualisation (elkjs / React Flow) is the deliberate next visual iteration;
-// the data plumbing it will draw from is what's settled here.
+type View = "graph" | "list";
+
+// BoardView owns the single board subscription and switches between the graph
+// overview ("it's a graph, not a board") and the column list detail. Both views
+// read the same cached Board, so there is only ever one StreamBoard connection.
 export function BoardView() {
   const { data: board, isPending, error } = useBoard();
+  const [view, setView] = useState<View>("graph");
   const epics = board?.epics ?? [];
 
   return (
@@ -16,22 +20,25 @@ export function BoardView() {
         <span className="muted">
           {isPending ? "connecting…" : `${epics.length} active epic${epics.length === 1 ? "" : "s"}`}
         </span>
+        <div className="spacer" />
+        <div className="toggle" role="tablist" aria-label="view">
+          <button role="tab" aria-selected={view === "graph"} className={view === "graph" ? "on" : ""} onClick={() => setView("graph")}>
+            graph
+          </button>
+          <button role="tab" aria-selected={view === "list"} className={view === "list" ? "on" : ""} onClick={() => setView("list")}>
+            list
+          </button>
+        </div>
       </header>
 
       {error ? (
         <p className="status error">Failed to load the board: {String(error)}</p>
       ) : isPending ? (
         <p className="status muted">Loading board…</p>
-      ) : epics.length === 0 ? (
-        <p className="status muted">
-          No active epics. Open an epic (or remove its <code>parked</code> label) to populate the board.
-        </p>
+      ) : view === "graph" ? (
+        <GraphView board={board} />
       ) : (
-        <div className="board">
-          {epics.map((e) => (
-            <EpicColumn key={e.epic ? String(e.epic.number) : "?"} epic={e} />
-          ))}
-        </div>
+        <ListView board={board} />
       )}
     </main>
   );

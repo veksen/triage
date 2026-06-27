@@ -45,6 +45,32 @@ body {
   letter-spacing: -0.02em;
 }
 
+.spacer {
+  flex: 1 1 auto;
+}
+
+.toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.toggle button {
+  background: var(--panel);
+  color: var(--muted);
+  border: 0;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.toggle button.on {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.toggle button:not(.on):hover {
+  color: var(--text);
+}
+
 .muted {
   color: var(--muted);
 }
@@ -201,4 +227,146 @@ code {
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
   font-size: 0.85em;
+}
+
+/* --- graph view --- */
+.graph-wrap {
+  position: relative;
+  height: calc(100vh - 150px);
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 1px 1px, #1b2230 1px, transparent 0) 0 0 / 22px 22px,
+    var(--bg);
+  overflow: hidden;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+.graph-svg:active {
+  cursor: grabbing;
+}
+
+.gnode {
+  fill: var(--panel-2);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+.gnode--ready {
+  stroke: var(--ready);
+}
+.gnode--blocker {
+  stroke: var(--stalled);
+}
+.gnode--ancestry {
+  fill: var(--panel);
+  stroke: var(--empty);
+  stroke-dasharray: 3 3;
+}
+.gnode--epic {
+  fill: #11202e;
+  stroke-width: 2.5;
+}
+.gnode--epic-active {
+  stroke: var(--ready);
+}
+.gnode--epic-stalled {
+  stroke: var(--stalled);
+}
+.gnode--epic-empty,
+.gnode--epic-unknown {
+  stroke: var(--empty);
+}
+
+.gnode-num {
+  fill: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.gnode-title {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+a:hover > .gnode {
+  filter: brightness(1.25);
+}
+
+.gedge {
+  fill: none;
+  stroke-width: 1.6;
+}
+.gedge--hierarchy {
+  stroke: #3a4555;
+}
+.gedge--blocks {
+  stroke: var(--stalled);
+  stroke-dasharray: 5 4;
+}
+.arrow--hierarchy {
+  fill: #3a4555;
+}
+.arrow--blocks {
+  fill: var(--stalled);
+}
+
+.dot--high {
+  fill: var(--high);
+}
+.dot--multi {
+  fill: var(--multi);
+}
+
+.legend {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.swatch {
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  background: var(--panel-2);
+  display: inline-block;
+}
+.swatch--epic-active {
+  border-color: var(--ready);
+  background: #11202e;
+}
+.swatch--epic-stalled {
+  border-color: var(--stalled);
+  background: #11202e;
+}
+.swatch--ready {
+  border-color: var(--ready);
+}
+.swatch--blocker {
+  border-color: var(--stalled);
+}
+.dash {
+  width: 16px;
+  border-top: 2px dashed var(--stalled);
+  display: inline-block;
 }
