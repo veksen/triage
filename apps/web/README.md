@@ -43,12 +43,15 @@ the server sends full snapshots, so the client never reconciles deltas.
 Two views over the same cached `Board` (one `StreamBoard` subscription, toggled
 in the top bar):
 
-- **graph** (default) — the dependency DAG. **elkjs** computes a layered
-  top-down layout (raw d3 can't lay out a DAG); **d3** renders it — `d3-shape`
-  for the curved edges, `d3-zoom` for pan/zoom. Epics colour by status, ready
-  leaves hang off solid hierarchy edges, and a stalled epic's blocker hangs off
-  a dashed "blocks" edge. `src/graph/buildBoardGraph.ts` is the pure,
-  unit-tested Board→DAG transform.
+- **graph** (default) — the **dependency map**, built to answer *what blocks
+  what, and why*. **elkjs** computes a layered top-down layout with orthogonal
+  (right-angle) edge routing (the DAG layout raw d3 can't do); **d3** renders it
+  — `d3-shape` for the wiring, `d3-zoom` for pan/zoom, plus a Fit/zoom control
+  bar. Epics anchor the top and colour by status; ready work hangs off "contains"
+  edges; a stalled epic wires to its prerequisite via a bold, dashed **"blocked
+  by"** edge, and each node carries its leverage (`unblocks N`) as the *why*.
+  `src/graph/buildBoardGraph.ts` is the pure, unit-tested Board→DAG transform.
+  Colours are tuned for APCA legibility on the dark surfaces.
 - **list** — the structured column-per-epic detail view, for scanning exact
   ready/blocker items.
 

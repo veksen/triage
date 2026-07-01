@@ -4,13 +4,15 @@
   --panel-2: #1c232c;
   --border: #2d333b;
   --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #2f81f7;
-  --ready: #3fb950;
-  --stalled: #d29922;
+  /* Tuned for APCA legibility on the dark surfaces: muted Lc ~67, chip greens/
+     ambers ~63, links ~50 — small UI labels stay readable, not washed out. */
+  --muted: #b9c2cc;
+  --accent: #58a6ff;
+  --ready: #56d364;
+  --stalled: #e3b341;
   --empty: #6e7681;
   --high: #bc8cff;
-  --multi: #2f81f7;
+  --multi: #58a6ff;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -412,3 +414,93 @@ a:hover > .gnode {
 .park-node.is-parking {
   cursor: progress;
 }
+
+/* --- dependency-map refinements --- */
+.gnode {
+  fill: var(--panel-2);
+  stroke: var(--border);
+  stroke-width: 1.25;
+}
+.gnode--ready { stroke: color-mix(in srgb, var(--ready) 55%, var(--border)); }
+.gnode--blocker { stroke: color-mix(in srgb, var(--stalled) 60%, var(--border)); }
+.gnode--epic-active { stroke: var(--ready); }
+.gnode--epic-stalled { stroke: var(--stalled); }
+
+/* left accent stripe */
+.gnode-accent { stroke: none; }
+.gnode-accent--ready { fill: var(--ready); }
+.gnode-accent--blocker { fill: var(--stalled); }
+.gnode-accent--ancestry { fill: var(--empty); }
+.gnode-accent--epic-active { fill: var(--ready); }
+.gnode-accent--epic-stalled { fill: var(--stalled); }
+.gnode-accent--epic-empty,
+.gnode-accent--epic-unknown { fill: var(--empty); }
+
+.gnode-num {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.gnode-title {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.gnode-chip {
+  fill: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gnode-chip--active { fill: var(--ready); }
+.gnode-chip--stalled { fill: var(--stalled); }
+
+/* edge labels: "blocked by" pill on dependency edges */
+.edge-label rect {
+  fill: #0d1117;
+  stroke: color-mix(in srgb, var(--stalled) 45%, transparent);
+  stroke-width: 1;
+}
+.edge-label text {
+  fill: var(--stalled);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-anchor: middle;
+  letter-spacing: 0.02em;
+}
+
+/* blocks edges heavier so "what blocks what" reads first */
+.gedge--blocks { stroke: var(--stalled); stroke-width: 2; stroke-dasharray: 6 4; }
+.gedge--hierarchy { stroke: #46536a; stroke-width: 1.5; }
+
+/* park control: hidden until the epic card is hovered */
+.gnode-group .park-node { opacity: 0; transition: opacity 0.12s ease; }
+.gnode-group:hover .park-node,
+.park-node.is-parking { opacity: 1; }
+
+/* zoom / fit toolbar */
+.graph-toolbar {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.graph-toolbar button {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 0.5rem;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.graph-toolbar button:hover { border-color: var(--accent); }

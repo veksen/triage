@@ -29,13 +29,12 @@ export function buildBoardGraph(board: Board | undefined): BoardGraph {
     if (!edges.has(id)) edges.set(id, { id, source: String(source), target: String(target), kind });
   };
 
-  // addLeaf wires epic -> (ancestry chain) -> leaf. ancestry is nearest-first
-  // ([parent, grandparent, ...]), so we walk it linking each level to its child
-  // and finally attach the topmost known ancestor (or the leaf itself) to the
-  // epic with topKind (solid hierarchy for ready work, dashed blocks for a
-  // stalled epic's prerequisite).
-  const addLeaf = (epicNumber: number, leaf: PbNode, kind: "ready" | "blocker", topKind: EdgeKind) => {
-    upsert(leaf.issue, kind, {
+  // addReady wires epic -> (ancestry chain) -> ready leaf with hierarchy edges.
+  // ancestry is nearest-first ([parent, grandparent, ...]), so we walk it linking
+  // each level to its child and finally attach the topmost known ancestor (or the
+  // leaf itself) to the epic. This chain is the "why does this matter" context.
+  const addReady = (epicNumber: number, leaf: PbNode) => {
+    upsert(leaf.issue, "ready", {
       leverage: leaf.leverage,
       highLeverage: leaf.highLeverage,
       multiEpic: leaf.multiEpic,
@@ -46,16 +45,29 @@ export function buildBoardGraph(board: Board | undefined): BoardGraph {
       addEdge(Number(a.number), child, "hierarchy");
       child = Number(a.number);
     }
-    addEdge(epicNumber, child, topKind);
+    addEdge(epicNumber, child, "hierarchy");
+  };
+
+  // addBlocker links the stalled epic to the prerequisite holding it up with a
+  // "blocks" edge (rendered "blocked by", pointing at the culprit). We don't
+  // chain a blocker's ancestry: a blocker is typically out of the epic's scope,
+  // so its ladder context is noise here — the blocking relationship is the point.
+  const addBlocker = (epicNumber: number, b: PbNode) => {
+    upsert(b.issue, "blocker", {
+      leverage: b.leverage,
+      highLeverage: b.highLeverage,
+      multiEpic: b.multiEpic,
+    });
+    addEdge(epicNumber, Number(b.issue?.number ?? 0), "blocks");
   };
 
   for (const ev of board?.epics ?? []) {
     upsert(ev.epic, "epic", { status: ev.status });
     const epicNumber = Number(ev.epic?.number ?? 0);
     if (ev.status === EpicStatus.STALLED) {
-      for (const b of ev.blockers) addLeaf(epicNumber, b, "blocker", "blocks");
+      for (const b of ev.blockers) addBlocker(epicNumber, b);
     } else {
-      for (const r of ev.ready) addLeaf(epicNumber, r, "ready", "hierarchy");
+      for (const r of ev.ready) addReady(epicNumber, r);
     }
   }
 

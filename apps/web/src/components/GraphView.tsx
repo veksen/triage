@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ELK from "elkjs/lib/elk.bundled.js";
-import type { ElkEdgeSection, ElkExtendedEdge, ElkNode } from "elkjs/lib/elk-api";
-import { line, curveBasis } from "d3-shape";
+import type { ElkEdgeSection, ElkExtendedEdge, ElkNode, ElkPoint } from "elkjs/lib/elk-api";
+import { line, curveLinear } from "d3-shape";
 import { select } from "d3-selection";
 import { zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
-import "d3-transition"; // enables selection.transition() used in the fit effect
+import "d3-transition";
 import { EpicStatus } from "../gen/triage/v1/triage_pb";
 import type { Board } from "../gen/triage/v1/triage_pb";
 import { buildBoardGraph } from "../graph/buildBoardGraph";
@@ -22,6 +22,9 @@ interface LaidEdge {
   id: string;
   kind: string;
   d: string;
+  label?: string;
+  lx: number;
+  ly: number;
 }
 interface Laid {
   nodes: LaidNode[];
@@ -31,10 +34,12 @@ interface Laid {
 }
 
 const elk = new ELK();
-const edgePath = line<{ x: number; y: number }>()
+// Crisp linear segments through ELK's orthogonal bend points — right-angle wiring
+// like a dependency map, not smoothed curves.
+const edgePath = line<ElkPoint>()
   .x((p) => p.x)
   .y((p) => p.y)
-  .curve(curveBasis);
+  .curve(curveLinear);
 
 const STATUS_SLUG: Record<EpicStatus, string> = {
   [EpicStatus.UNSPECIFIED]: "unknown",
@@ -42,11 +47,18 @@ const STATUS_SLUG: Record<EpicStatus, string> = {
   [EpicStatus.STALLED]: "stalled",
   [EpicStatus.EMPTY]: "empty",
 };
+const STATUS_LABEL: Record<EpicStatus, string> = {
+  [EpicStatus.UNSPECIFIED]: "unknown",
+  [EpicStatus.ACTIVE]: "ready",
+  [EpicStatus.STALLED]: "stalled",
+  [EpicStatus.EMPTY]: "no work",
+};
 
-// GraphView lays the board DAG out with ELK, then renders it as SVG. React owns
-// the DOM (nodes/edges as JSX); d3 does the maths it is good at — d3-shape for
-// smooth edge curves and d3-zoom for pan/zoom — the "React for DOM, d3 for the
-// numbers" split, with ELK supplying the layout d3 alone can't.
+// GraphView renders the board as a dependency map: epics anchor the top, ready
+// work hangs off "contains" edges, and a stalled epic wires to the prerequisite
+// holding it up via a labelled "blocked by" edge — what blocks what, and why
+// (leverage) it matters. ELK lays out the DAG; d3 draws the wiring and drives
+// pan/zoom.
 export function GraphView({ board }: { board: Board | undefined }) {
   const graph = useMemo(() => buildBoardGraph(board), [board]);
   const [laid, setLaid] = useState<Laid | null>(null);
@@ -72,14 +84,23 @@ export function GraphView({ board }: { board: Board | undefined }) {
           ...meta.get(c.id ?? "")!,
           x: c.x ?? 0,
           y: c.y ?? 0,
-          w: c.width ?? 132,
-          h: c.height ?? 46,
+          w: c.width ?? 216,
+          h: c.height ?? 58,
         }));
         const kindOf = new Map(graph.edges.map((e) => [e.id, e.kind]));
         const edges: LaidEdge[] = (res.edges ?? []).map((e: ElkExtendedEdge) => {
           const s: ElkEdgeSection | undefined = e.sections?.[0];
           const pts = s ? [s.startPoint, ...(s.bendPoints ?? []), s.endPoint] : [];
-          return { id: e.id, kind: kindOf.get(e.id) ?? "hierarchy", d: edgePath(pts) ?? "" };
+          const kind = kindOf.get(e.id) ?? "hierarchy";
+          const mid = polyMidpoint(pts);
+          return {
+            id: e.id,
+            kind,
+            d: edgePath(pts) ?? "",
+            label: kind === "blocks" ? "blocked by" : undefined,
+            lx: mid.x,
+            ly: mid.y,
+          };
         });
         setLaid({ nodes, edges, width: res.width ?? 0, height: res.height ?? 0 });
       })
@@ -107,21 +128,29 @@ export function GraphView({ board }: { board: Board | undefined }) {
     };
   }, []);
 
-  // Fit the graph to the viewport whenever a new layout arrives.
-  useEffect(() => {
-    if (!laid || !svgRef.current || !zoomRef.current || laid.nodes.length === 0) return;
+  const fitTo = (l: Laid | null) => {
+    if (!l || !svgRef.current || !zoomRef.current || l.nodes.length === 0) return;
     const svg = svgRef.current;
     const cw = svg.clientWidth || 900;
     const ch = svg.clientHeight || 600;
-    const pad = 48;
-    const scale = Math.max(0.2, Math.min(1.4, Math.min((cw - 2 * pad) / laid.width, (ch - 2 * pad) / laid.height)));
-    const tx = (cw - laid.width * scale) / 2;
+    const pad = 56;
+    const scale = Math.max(0.2, Math.min(1.4, Math.min((cw - 2 * pad) / l.width, (ch - 2 * pad) / l.height)));
+    const tx = (cw - l.width * scale) / 2;
     const ty = pad;
-    select(svg)
-      .transition()
-      .duration(300)
-      .call(zoomRef.current.transform, zoomIdentity.translate(tx, ty).scale(scale));
+    select(svg).transition().duration(300).call(zoomRef.current.transform, zoomIdentity.translate(tx, ty).scale(scale));
+  };
+
+  // Fit whenever a new layout arrives.
+  useEffect(() => {
+    fitTo(laid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [laid]);
+
+  const zoomBy = (k: number) => {
+    if (svgRef.current && zoomRef.current) {
+      select(svgRef.current).transition().duration(180).call(zoomRef.current.scaleBy, k);
+    }
+  };
 
   if (graph.nodes.length === 0) {
     return (
@@ -138,7 +167,7 @@ export function GraphView({ board }: { board: Board | undefined }) {
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" className="arrow arrow--hierarchy" />
           </marker>
-          <marker id="arrow-blocks" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <marker id="arrow-blocks" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" className="arrow arrow--blocks" />
           </marker>
         </defs>
@@ -151,6 +180,14 @@ export function GraphView({ board }: { board: Board | undefined }) {
               markerEnd={e.kind === "blocks" ? "url(#arrow-blocks)" : "url(#arrow)"}
             />
           ))}
+          {laid?.edges
+            .filter((e) => e.label)
+            .map((e) => (
+              <g key={`${e.id}-label`} className="edge-label" transform={`translate(${e.lx},${e.ly})`}>
+                <rect x={-38} y={-9} width={76} height={18} rx={9} />
+                <text y={4}>{e.label}</text>
+              </g>
+            ))}
           {laid?.nodes.map((n) => (
             <GraphNodeView
               key={n.id}
@@ -161,7 +198,36 @@ export function GraphView({ board }: { board: Board | undefined }) {
           ))}
         </g>
       </svg>
-      <Legend />
+
+      <div className="graph-toolbar" role="toolbar" aria-label="graph controls">
+        <button type="button" title="Zoom out" onClick={() => zoomBy(1 / 1.25)}>
+          −
+        </button>
+        <button type="button" title="Fit to view" onClick={() => fitTo(laid)}>
+          Fit
+        </button>
+        <button type="button" title="Zoom in" onClick={() => zoomBy(1.25)}>
+          +
+        </button>
+      </div>
+
+      <ul className="legend">
+        <li>
+          <span className="swatch swatch--epic-active" /> epic (ready)
+        </li>
+        <li>
+          <span className="swatch swatch--epic-stalled" /> epic (stalled)
+        </li>
+        <li>
+          <span className="swatch swatch--ready" /> ready leaf
+        </li>
+        <li>
+          <span className="swatch swatch--blocker" /> blocker
+        </li>
+        <li>
+          <span className="dash" /> blocked by
+        </li>
+      </ul>
     </div>
   );
 }
@@ -177,68 +243,82 @@ function GraphNodeView({
 }) {
   const epicSlug = node.kind === "epic" && node.status !== undefined ? STATUS_SLUG[node.status] : "";
   const cls = `gnode gnode--${node.kind}${epicSlug ? ` gnode--epic-${epicSlug}` : ""}`;
-  // Leave room for the park button on epic nodes so the title never overlaps it.
-  const rightInset = onPark ? 52 : 22;
-  const maxChars = Math.max(4, Math.floor((node.w - rightInset) / 7));
+
+  const chip =
+    node.kind === "epic" && node.status !== undefined
+      ? STATUS_LABEL[node.status]
+      : node.leverage
+        ? `unblocks ${node.leverage}`
+        : "";
+  const chipCls =
+    node.kind === "epic" && node.status !== undefined ? `gnode-chip gnode-chip--${epicSlug}` : "gnode-chip";
+
+  const maxChars = 25;
   const title = node.title.length > maxChars ? node.title.slice(0, maxChars - 1) + "…" : node.title;
 
   return (
-    <g transform={`translate(${node.x},${node.y})`}>
-      <a href={node.url || undefined} target="_blank" rel="noreferrer">
-        <rect className={cls} width={node.w} height={node.h} rx={9} />
-        <text className="gnode-num" x={11} y={19}>
-          #{node.number}
-          {node.leverage ? `  ·  unblocks ${node.leverage}` : ""}
-        </text>
-        <text className="gnode-title" x={11} y={35}>
-          {title}
-        </text>
-        {!onPark && node.highLeverage && <circle className="dot dot--high" cx={node.w - 13} cy={13} r={4} />}
-        {!onPark && node.multiEpic && (
-          <circle className="dot dot--multi" cx={node.w - 13} cy={node.highLeverage ? 27 : 13} r={4} />
-        )}
-      </a>
-
-      {onPark && (
-        // Sibling of the <a>, painted on top, so the click parks rather than
-        // following the issue link.
-        <g
-          className={`park-node ${parking ? "is-parking" : ""}`}
-          transform={`translate(${node.w - 46},8)`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!parking) onPark(node.number);
-          }}
-        >
-          <rect className="park-node-bg" width={38} height={16} rx={5} />
-          <text className="park-node-text" x={19} y={12}>
-            {parking ? "…" : "park"}
+    <g className="gnode-group">
+      <g transform={`translate(${node.x},${node.y})`}>
+        <a href={node.url || undefined} target="_blank" rel="noreferrer">
+          <rect className={cls} width={node.w} height={node.h} rx={9} />
+          <rect className={`gnode-accent gnode-accent--${node.kind}${epicSlug ? `-${epicSlug}` : ""}`} width={4} height={node.h} rx={2} />
+          <text className="gnode-num" x={14} y={22}>
+            #{node.number}
           </text>
-        </g>
-      )}
+          {chip && (
+            <text className={chipCls} x={node.w - 12} y={22} textAnchor="end">
+              {chip}
+            </text>
+          )}
+          <text className="gnode-title" x={14} y={42}>
+            {title}
+          </text>
+        </a>
+
+        {onPark && (
+          // Sibling of the <a>, on top, so the click parks rather than following
+          // the link. Revealed on node hover to keep the card clean.
+          <g
+            className={`park-node ${parking ? "is-parking" : ""}`}
+            transform={`translate(${node.w - 44},${node.h - 22})`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!parking) onPark(node.number);
+            }}
+          >
+            <rect className="park-node-bg" width={36} height={15} rx={5} />
+            <text className="park-node-text" x={18} y={11}>
+              {parking ? "…" : "park"}
+            </text>
+          </g>
+        )}
+      </g>
     </g>
   );
 }
 
-function Legend() {
-  return (
-    <ul className="legend">
-      <li>
-        <span className="swatch swatch--epic-active" /> epic (ready)
-      </li>
-      <li>
-        <span className="swatch swatch--epic-stalled" /> epic (stalled)
-      </li>
-      <li>
-        <span className="swatch swatch--ready" /> ready leaf
-      </li>
-      <li>
-        <span className="swatch swatch--blocker" /> blocker
-      </li>
-      <li>
-        <span className="dash" /> blocks
-      </li>
-    </ul>
-  );
+// polyMidpoint returns the point at half the arc length of a polyline — a stable
+// spot to anchor an edge label.
+function polyMidpoint(pts: ElkPoint[]): ElkPoint {
+  if (pts.length === 0) return { x: 0, y: 0 };
+  if (pts.length === 1) return pts[0];
+  let total = 0;
+  const seg: number[] = [];
+  for (let i = 1; i < pts.length; i++) {
+    const len = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    seg.push(len);
+    total += len;
+  }
+  let acc = 0;
+  const target = total / 2;
+  for (let i = 1; i < pts.length; i++) {
+    const len = seg[i - 1];
+    if (acc + len >= target) {
+      const t = len ? (target - acc) / len : 0;
+      return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t };
+    }
+    acc += len;
+  }
+  return pts[pts.length - 1];
 }
