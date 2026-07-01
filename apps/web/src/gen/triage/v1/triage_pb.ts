@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file triage/v1/triage.proto.
  */
 export const file_triage_v1_triage: GenFile = /*@__PURE__*/
-  fileDesc("ChZ0cmlhZ2UvdjEvdHJpYWdlLnByb3RvEgl0cmlhZ2UudjEiEQoPR2V0Qm9hcmRSZXF1ZXN0IhQKElN0cmVhbUJvYXJkUmVxdWVzdCIzChBHZXRCb2FyZFJlc3BvbnNlEh8KBWJvYXJkGAEgASgLMhAudHJpYWdlLnYxLkJvYXJkIjYKE1N0cmVhbUJvYXJkUmVzcG9uc2USHwoFYm9hcmQYASABKAsyEC50cmlhZ2UudjEuQm9hcmQiKwoFQm9hcmQSIgoFZXBpY3MYASADKAsyEy50cmlhZ2UudjEuRXBpY1ZpZXcilwEKCEVwaWNWaWV3EiEKBGVwaWMYASABKAsyEy50cmlhZ2UudjEuSXNzdWVSZWYSJQoGc3RhdHVzGAIgASgOMhUudHJpYWdlLnYxLkVwaWNTdGF0dXMSHgoFcmVhZHkYAyADKAsyDy50cmlhZ2UudjEuTm9kZRIhCghibG9ja2VycxgEIAMoCzIPLnRyaWFnZS52MS5Ob2RlIqQBCgROb2RlEiIKBWlzc3VlGAEgASgLMhMudHJpYWdlLnYxLklzc3VlUmVmEhAKCGxldmVyYWdlGAIgASgFEiUKCGFuY2VzdHJ5GAMgAygLMhMudHJpYWdlLnYxLklzc3VlUmVmEhQKDHNlcnZlc19lcGljcxgEIAMoAxISCgptdWx0aV9lcGljGAUgASgIEhUKDWhpZ2hfbGV2ZXJhZ2UYBiABKAgiRAoISXNzdWVSZWYSDgoGbnVtYmVyGAEgASgDEg0KBXRpdGxlGAIgASgJEgsKA3VybBgDIAEoCRIMCgRvcGVuGAQgASgIIjoKE1NldEVwaWNTdGF0ZVJlcXVlc3QSEwoLZXBpY19udW1iZXIYASABKAMSDgoGYWN0aXZlGAIgASgIIj0KFFNldEVwaWNTdGF0ZVJlc3BvbnNlEiUKBnN0YXR1cxgBIAEoDjIVLnRyaWFnZS52MS5FcGljU3RhdHVzKnEKCkVwaWNTdGF0dXMSGwoXRVBJQ19TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJFUElDX1NUQVRVU19BQ1RJVkUQARIXChNFUElDX1NUQVRVU19TVEFMTEVEEAISFQoRRVBJQ19TVEFUVVNfRU1QVFkQAzL7AQoNVHJpYWdlU2VydmljZRJFCghHZXRCb2FyZBIaLnRyaWFnZS52MS5HZXRCb2FyZFJlcXVlc3QaGy50cmlhZ2UudjEuR2V0Qm9hcmRSZXNwb25zZSIAElAKC1N0cmVhbUJvYXJkEh0udHJpYWdlLnYxLlN0cmVhbUJvYXJkUmVxdWVzdBoeLnRyaWFnZS52MS5TdHJlYW1Cb2FyZFJlc3BvbnNlIgAwARJRCgxTZXRFcGljU3RhdGUSHi50cmlhZ2UudjEuU2V0RXBpY1N0YXRlUmVxdWVzdBofLnRyaWFnZS52MS5TZXRFcGljU3RhdGVSZXNwb25zZSIAYgZwcm90bzM");
+  fileDesc("ChZ0cmlhZ2UvdjEvdHJpYWdlLnByb3RvEgl0cmlhZ2UudjEiEQoPR2V0Qm9hcmRSZXF1ZXN0IhQKElN0cmVhbUJvYXJkUmVxdWVzdCIzChBHZXRCb2FyZFJlc3BvbnNlEh8KBWJvYXJkGAEgASgLMhAudHJpYWdlLnYxLkJvYXJkIjYKE1N0cmVhbUJvYXJkUmVzcG9uc2USHwoFYm9hcmQYASABKAsyEC50cmlhZ2UudjEuQm9hcmQiXAoFQm9hcmQSIgoFZXBpY3MYASADKAsyEy50cmlhZ2UudjEuRXBpY1ZpZXcSLwoMZGVwZW5kZW5jaWVzGAIgAygLMhkudHJpYWdlLnYxLkRlcGVuZGVuY3lFZGdlIjIKDkRlcGVuZGVuY3lFZGdlEg8KB2Jsb2NrZWQYASABKAMSDwoHYmxvY2tlchgCIAEoAyK5AQoIRXBpY1ZpZXcSIQoEZXBpYxgBIAEoCzITLnRyaWFnZS52MS5Jc3N1ZVJlZhIlCgZzdGF0dXMYAiABKA4yFS50cmlhZ2UudjEuRXBpY1N0YXR1cxIeCgVyZWFkeRgDIAMoCzIPLnRyaWFnZS52MS5Ob2RlEiEKCGJsb2NrZXJzGAQgAygLMg8udHJpYWdlLnYxLk5vZGUSIAoHYmxvY2tlZBgFIAMoCzIPLnRyaWFnZS52MS5Ob2RlIqQBCgROb2RlEiIKBWlzc3VlGAEgASgLMhMudHJpYWdlLnYxLklzc3VlUmVmEhAKCGxldmVyYWdlGAIgASgFEiUKCGFuY2VzdHJ5GAMgAygLMhMudHJpYWdlLnYxLklzc3VlUmVmEhQKDHNlcnZlc19lcGljcxgEIAMoAxISCgptdWx0aV9lcGljGAUgASgIEhUKDWhpZ2hfbGV2ZXJhZ2UYBiABKAgiRAoISXNzdWVSZWYSDgoGbnVtYmVyGAEgASgDEg0KBXRpdGxlGAIgASgJEgsKA3VybBgDIAEoCRIMCgRvcGVuGAQgASgIIjoKE1NldEVwaWNTdGF0ZVJlcXVlc3QSEwoLZXBpY19udW1iZXIYASABKAMSDgoGYWN0aXZlGAIgASgIIj0KFFNldEVwaWNTdGF0ZVJlc3BvbnNlEiUKBnN0YXR1cxgBIAEoDjIVLnRyaWFnZS52MS5FcGljU3RhdHVzKnEKCkVwaWNTdGF0dXMSGwoXRVBJQ19TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJFUElDX1NUQVRVU19BQ1RJVkUQARIXChNFUElDX1NUQVRVU19TVEFMTEVEEAISFQoRRVBJQ19TVEFUVVNfRU1QVFkQAzL7AQoNVHJpYWdlU2VydmljZRJFCghHZXRCb2FyZBIaLnRyaWFnZS52MS5HZXRCb2FyZFJlcXVlc3QaGy50cmlhZ2UudjEuR2V0Qm9hcmRSZXNwb25zZSIAElAKC1N0cmVhbUJvYXJkEh0udHJpYWdlLnYxLlN0cmVhbUJvYXJkUmVxdWVzdBoeLnRyaWFnZS52MS5TdHJlYW1Cb2FyZFJlc3BvbnNlIgAwARJRCgxTZXRFcGljU3RhdGUSHi50cmlhZ2UudjEuU2V0RXBpY1N0YXRlUmVxdWVzdBofLnRyaWFnZS52MS5TZXRFcGljU3RhdGVSZXNwb25zZSIAYgZwcm90bzM");
 
 /**
  * @generated from message triage.v1.GetBoardRequest
@@ -82,6 +82,15 @@ export type Board = Message<"triage.v1.Board"> & {
    * @generated from field: repeated triage.v1.EpicView epics = 1;
    */
   epics: EpicView[];
+
+  /**
+   * dependencies are the "blocked by" edges among the rendered issues — the
+   * actual "what blocks what" wiring, so the client draws real blocking chains
+   * (blocked task -> blocker) rather than inferring them.
+   *
+   * @generated from field: repeated triage.v1.DependencyEdge dependencies = 2;
+   */
+  dependencies: DependencyEdge[];
 };
 
 /**
@@ -90,6 +99,35 @@ export type Board = Message<"triage.v1.Board"> & {
  */
 export const BoardSchema: GenMessage<Board> = /*@__PURE__*/
   messageDesc(file_triage_v1_triage, 4);
+
+/**
+ * DependencyEdge is one native GitHub dependency between two rendered issues:
+ * blocked cannot start until blocker closes.
+ *
+ * @generated from message triage.v1.DependencyEdge
+ */
+export type DependencyEdge = Message<"triage.v1.DependencyEdge"> & {
+  /**
+   * the issue held up
+   *
+   * @generated from field: int64 blocked = 1;
+   */
+  blocked: bigint;
+
+  /**
+   * the issue holding it up
+   *
+   * @generated from field: int64 blocker = 2;
+   */
+  blocker: bigint;
+};
+
+/**
+ * Describes the message triage.v1.DependencyEdge.
+ * Use `create(DependencyEdgeSchema)` to create a new message.
+ */
+export const DependencyEdgeSchema: GenMessage<DependencyEdge> = /*@__PURE__*/
+  messageDesc(file_triage_v1_triage, 5);
 
 /**
  * EpicView is one active epic's slice of the board.
@@ -120,6 +158,15 @@ export type EpicView = Message<"triage.v1.EpicView"> & {
    * @generated from field: repeated triage.v1.Node blockers = 4;
    */
   blockers: Node[];
+
+  /**
+   * blocked are the epic's own ladder tasks that are held up (when STALLED),
+   * each directly blocked by one of `blockers`. Together with Board.dependencies
+   * they render the chain: epic -> blocked task -> blocker.
+   *
+   * @generated from field: repeated triage.v1.Node blocked = 5;
+   */
+  blocked: Node[];
 };
 
 /**
@@ -127,7 +174,7 @@ export type EpicView = Message<"triage.v1.EpicView"> & {
  * Use `create(EpicViewSchema)` to create a new message.
  */
 export const EpicViewSchema: GenMessage<EpicView> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 5);
+  messageDesc(file_triage_v1_triage, 6);
 
 /**
  * Node is a rendered issue plus the context and flags the frontend needs.
@@ -178,7 +225,7 @@ export type Node = Message<"triage.v1.Node"> & {
  * Use `create(NodeSchema)` to create a new message.
  */
 export const NodeSchema: GenMessage<Node> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 6);
+  messageDesc(file_triage_v1_triage, 7);
 
 /**
  * IssueRef is the displayable identity of an issue.
@@ -214,7 +261,7 @@ export type IssueRef = Message<"triage.v1.IssueRef"> & {
  * Use `create(IssueRefSchema)` to create a new message.
  */
 export const IssueRefSchema: GenMessage<IssueRef> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 7);
+  messageDesc(file_triage_v1_triage, 8);
 
 /**
  * @generated from message triage.v1.SetEpicStateRequest
@@ -239,7 +286,7 @@ export type SetEpicStateRequest = Message<"triage.v1.SetEpicStateRequest"> & {
  * Use `create(SetEpicStateRequestSchema)` to create a new message.
  */
 export const SetEpicStateRequestSchema: GenMessage<SetEpicStateRequest> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 8);
+  messageDesc(file_triage_v1_triage, 9);
 
 /**
  * @generated from message triage.v1.SetEpicStateResponse
@@ -258,7 +305,7 @@ export type SetEpicStateResponse = Message<"triage.v1.SetEpicStateResponse"> & {
  * Use `create(SetEpicStateResponseSchema)` to create a new message.
  */
 export const SetEpicStateResponseSchema: GenMessage<SetEpicStateResponse> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 9);
+  messageDesc(file_triage_v1_triage, 10);
 
 /**
  * EpicStatus mirrors the algorithm's per-epic outcome.

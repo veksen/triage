@@ -34,6 +34,17 @@ message StreamBoardResponse {
 // Board is the full render set the frontend draws.
 message Board {
   repeated EpicView epics = 1;
+  // dependencies are the "blocked by" edges among the rendered issues — the
+  // actual "what blocks what" wiring, so the client draws real blocking chains
+  // (blocked task -> blocker) rather than inferring them.
+  repeated DependencyEdge dependencies = 2;
+}
+
+// DependencyEdge is one native GitHub dependency between two rendered issues:
+// blocked cannot start until blocker closes.
+message DependencyEdge {
+  int64 blocked = 1; // the issue held up
+  int64 blocker = 2; // the issue holding it up
 }
 
 // EpicStatus mirrors the algorithm's per-epic outcome.
@@ -50,6 +61,10 @@ message EpicView {
   EpicStatus status = 2;
   repeated Node ready = 3; // ranked ready leaves, when ACTIVE
   repeated Node blockers = 4; // actionable open blockers, when STALLED
+  // blocked are the epic's own ladder tasks that are held up (when STALLED),
+  // each directly blocked by one of `blockers`. Together with Board.dependencies
+  // they render the chain: epic -> blocked task -> blocker.
+  repeated Node blocked = 5;
 }
 
 // Node is a rendered issue plus the context and flags the frontend needs.

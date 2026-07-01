@@ -236,8 +236,12 @@ func (x *StreamBoardResponse) GetBoard() *Board {
 
 // Board is the full render set the frontend draws.
 type Board struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Epics         []*EpicView            `protobuf:"bytes,1,rep,name=epics,proto3" json:"epics,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Epics []*EpicView            `protobuf:"bytes,1,rep,name=epics,proto3" json:"epics,omitempty"`
+	// dependencies are the "blocked by" edges among the rendered issues — the
+	// actual "what blocks what" wiring, so the client draws real blocking chains
+	// (blocked task -> blocker) rather than inferring them.
+	Dependencies  []*DependencyEdge `protobuf:"bytes,2,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -279,20 +283,85 @@ func (x *Board) GetEpics() []*EpicView {
 	return nil
 }
 
+func (x *Board) GetDependencies() []*DependencyEdge {
+	if x != nil {
+		return x.Dependencies
+	}
+	return nil
+}
+
+// DependencyEdge is one native GitHub dependency between two rendered issues:
+// blocked cannot start until blocker closes.
+type DependencyEdge struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Blocked       int64                  `protobuf:"varint,1,opt,name=blocked,proto3" json:"blocked,omitempty"` // the issue held up
+	Blocker       int64                  `protobuf:"varint,2,opt,name=blocker,proto3" json:"blocker,omitempty"` // the issue holding it up
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DependencyEdge) Reset() {
+	*x = DependencyEdge{}
+	mi := &file_triage_v1_triage_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DependencyEdge) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DependencyEdge) ProtoMessage() {}
+
+func (x *DependencyEdge) ProtoReflect() protoreflect.Message {
+	mi := &file_triage_v1_triage_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DependencyEdge.ProtoReflect.Descriptor instead.
+func (*DependencyEdge) Descriptor() ([]byte, []int) {
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *DependencyEdge) GetBlocked() int64 {
+	if x != nil {
+		return x.Blocked
+	}
+	return 0
+}
+
+func (x *DependencyEdge) GetBlocker() int64 {
+	if x != nil {
+		return x.Blocker
+	}
+	return 0
+}
+
 // EpicView is one active epic's slice of the board.
 type EpicView struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Epic          *IssueRef              `protobuf:"bytes,1,opt,name=epic,proto3" json:"epic,omitempty"`
-	Status        EpicStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=triage.v1.EpicStatus" json:"status,omitempty"`
-	Ready         []*Node                `protobuf:"bytes,3,rep,name=ready,proto3" json:"ready,omitempty"`       // ranked ready leaves, when ACTIVE
-	Blockers      []*Node                `protobuf:"bytes,4,rep,name=blockers,proto3" json:"blockers,omitempty"` // actionable open blockers, when STALLED
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Epic     *IssueRef              `protobuf:"bytes,1,opt,name=epic,proto3" json:"epic,omitempty"`
+	Status   EpicStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=triage.v1.EpicStatus" json:"status,omitempty"`
+	Ready    []*Node                `protobuf:"bytes,3,rep,name=ready,proto3" json:"ready,omitempty"`       // ranked ready leaves, when ACTIVE
+	Blockers []*Node                `protobuf:"bytes,4,rep,name=blockers,proto3" json:"blockers,omitempty"` // actionable open blockers, when STALLED
+	// blocked are the epic's own ladder tasks that are held up (when STALLED),
+	// each directly blocked by one of `blockers`. Together with Board.dependencies
+	// they render the chain: epic -> blocked task -> blocker.
+	Blocked       []*Node `protobuf:"bytes,5,rep,name=blocked,proto3" json:"blocked,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EpicView) Reset() {
 	*x = EpicView{}
-	mi := &file_triage_v1_triage_proto_msgTypes[5]
+	mi := &file_triage_v1_triage_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -304,7 +373,7 @@ func (x *EpicView) String() string {
 func (*EpicView) ProtoMessage() {}
 
 func (x *EpicView) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[5]
+	mi := &file_triage_v1_triage_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -317,7 +386,7 @@ func (x *EpicView) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EpicView.ProtoReflect.Descriptor instead.
 func (*EpicView) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{5}
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EpicView) GetEpic() *IssueRef {
@@ -348,6 +417,13 @@ func (x *EpicView) GetBlockers() []*Node {
 	return nil
 }
 
+func (x *EpicView) GetBlocked() []*Node {
+	if x != nil {
+		return x.Blocked
+	}
+	return nil
+}
+
 // Node is a rendered issue plus the context and flags the frontend needs.
 type Node struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -367,7 +443,7 @@ type Node struct {
 
 func (x *Node) Reset() {
 	*x = Node{}
-	mi := &file_triage_v1_triage_proto_msgTypes[6]
+	mi := &file_triage_v1_triage_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -379,7 +455,7 @@ func (x *Node) String() string {
 func (*Node) ProtoMessage() {}
 
 func (x *Node) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[6]
+	mi := &file_triage_v1_triage_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -392,7 +468,7 @@ func (x *Node) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Node.ProtoReflect.Descriptor instead.
 func (*Node) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{6}
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Node) GetIssue() *IssueRef {
@@ -450,7 +526,7 @@ type IssueRef struct {
 
 func (x *IssueRef) Reset() {
 	*x = IssueRef{}
-	mi := &file_triage_v1_triage_proto_msgTypes[7]
+	mi := &file_triage_v1_triage_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -462,7 +538,7 @@ func (x *IssueRef) String() string {
 func (*IssueRef) ProtoMessage() {}
 
 func (x *IssueRef) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[7]
+	mi := &file_triage_v1_triage_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -475,7 +551,7 @@ func (x *IssueRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueRef.ProtoReflect.Descriptor instead.
 func (*IssueRef) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{7}
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *IssueRef) GetNumber() int64 {
@@ -518,7 +594,7 @@ type SetEpicStateRequest struct {
 
 func (x *SetEpicStateRequest) Reset() {
 	*x = SetEpicStateRequest{}
-	mi := &file_triage_v1_triage_proto_msgTypes[8]
+	mi := &file_triage_v1_triage_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -530,7 +606,7 @@ func (x *SetEpicStateRequest) String() string {
 func (*SetEpicStateRequest) ProtoMessage() {}
 
 func (x *SetEpicStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[8]
+	mi := &file_triage_v1_triage_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -543,7 +619,7 @@ func (x *SetEpicStateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetEpicStateRequest.ProtoReflect.Descriptor instead.
 func (*SetEpicStateRequest) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{8}
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SetEpicStateRequest) GetEpicNumber() int64 {
@@ -569,7 +645,7 @@ type SetEpicStateResponse struct {
 
 func (x *SetEpicStateResponse) Reset() {
 	*x = SetEpicStateResponse{}
-	mi := &file_triage_v1_triage_proto_msgTypes[9]
+	mi := &file_triage_v1_triage_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -581,7 +657,7 @@ func (x *SetEpicStateResponse) String() string {
 func (*SetEpicStateResponse) ProtoMessage() {}
 
 func (x *SetEpicStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[9]
+	mi := &file_triage_v1_triage_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -594,7 +670,7 @@ func (x *SetEpicStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetEpicStateResponse.ProtoReflect.Descriptor instead.
 func (*SetEpicStateResponse) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{9}
+	return file_triage_v1_triage_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SetEpicStateResponse) GetStatus() EpicStatus {
@@ -614,14 +690,19 @@ const file_triage_v1_triage_proto_rawDesc = "" +
 	"\x10GetBoardResponse\x12&\n" +
 	"\x05board\x18\x01 \x01(\v2\x10.triage.v1.BoardR\x05board\"=\n" +
 	"\x13StreamBoardResponse\x12&\n" +
-	"\x05board\x18\x01 \x01(\v2\x10.triage.v1.BoardR\x05board\"2\n" +
+	"\x05board\x18\x01 \x01(\v2\x10.triage.v1.BoardR\x05board\"q\n" +
 	"\x05Board\x12)\n" +
-	"\x05epics\x18\x01 \x03(\v2\x13.triage.v1.EpicViewR\x05epics\"\xb6\x01\n" +
+	"\x05epics\x18\x01 \x03(\v2\x13.triage.v1.EpicViewR\x05epics\x12=\n" +
+	"\fdependencies\x18\x02 \x03(\v2\x19.triage.v1.DependencyEdgeR\fdependencies\"D\n" +
+	"\x0eDependencyEdge\x12\x18\n" +
+	"\ablocked\x18\x01 \x01(\x03R\ablocked\x12\x18\n" +
+	"\ablocker\x18\x02 \x01(\x03R\ablocker\"\xe1\x01\n" +
 	"\bEpicView\x12'\n" +
 	"\x04epic\x18\x01 \x01(\v2\x13.triage.v1.IssueRefR\x04epic\x12-\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x15.triage.v1.EpicStatusR\x06status\x12%\n" +
 	"\x05ready\x18\x03 \x03(\v2\x0f.triage.v1.NodeR\x05ready\x12+\n" +
-	"\bblockers\x18\x04 \x03(\v2\x0f.triage.v1.NodeR\bblockers\"\xe5\x01\n" +
+	"\bblockers\x18\x04 \x03(\v2\x0f.triage.v1.NodeR\bblockers\x12)\n" +
+	"\ablocked\x18\x05 \x03(\v2\x0f.triage.v1.NodeR\ablocked\"\xe5\x01\n" +
 	"\x04Node\x12)\n" +
 	"\x05issue\x18\x01 \x01(\v2\x13.triage.v1.IssueRefR\x05issue\x12\x1a\n" +
 	"\bleverage\x18\x02 \x01(\x05R\bleverage\x12/\n" +
@@ -667,7 +748,7 @@ func file_triage_v1_triage_proto_rawDescGZIP() []byte {
 }
 
 var file_triage_v1_triage_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_triage_v1_triage_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_triage_v1_triage_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_triage_v1_triage_proto_goTypes = []any{
 	(EpicStatus)(0),              // 0: triage.v1.EpicStatus
 	(*GetBoardRequest)(nil),      // 1: triage.v1.GetBoardRequest
@@ -675,34 +756,37 @@ var file_triage_v1_triage_proto_goTypes = []any{
 	(*GetBoardResponse)(nil),     // 3: triage.v1.GetBoardResponse
 	(*StreamBoardResponse)(nil),  // 4: triage.v1.StreamBoardResponse
 	(*Board)(nil),                // 5: triage.v1.Board
-	(*EpicView)(nil),             // 6: triage.v1.EpicView
-	(*Node)(nil),                 // 7: triage.v1.Node
-	(*IssueRef)(nil),             // 8: triage.v1.IssueRef
-	(*SetEpicStateRequest)(nil),  // 9: triage.v1.SetEpicStateRequest
-	(*SetEpicStateResponse)(nil), // 10: triage.v1.SetEpicStateResponse
+	(*DependencyEdge)(nil),       // 6: triage.v1.DependencyEdge
+	(*EpicView)(nil),             // 7: triage.v1.EpicView
+	(*Node)(nil),                 // 8: triage.v1.Node
+	(*IssueRef)(nil),             // 9: triage.v1.IssueRef
+	(*SetEpicStateRequest)(nil),  // 10: triage.v1.SetEpicStateRequest
+	(*SetEpicStateResponse)(nil), // 11: triage.v1.SetEpicStateResponse
 }
 var file_triage_v1_triage_proto_depIdxs = []int32{
 	5,  // 0: triage.v1.GetBoardResponse.board:type_name -> triage.v1.Board
 	5,  // 1: triage.v1.StreamBoardResponse.board:type_name -> triage.v1.Board
-	6,  // 2: triage.v1.Board.epics:type_name -> triage.v1.EpicView
-	8,  // 3: triage.v1.EpicView.epic:type_name -> triage.v1.IssueRef
-	0,  // 4: triage.v1.EpicView.status:type_name -> triage.v1.EpicStatus
-	7,  // 5: triage.v1.EpicView.ready:type_name -> triage.v1.Node
-	7,  // 6: triage.v1.EpicView.blockers:type_name -> triage.v1.Node
-	8,  // 7: triage.v1.Node.issue:type_name -> triage.v1.IssueRef
-	8,  // 8: triage.v1.Node.ancestry:type_name -> triage.v1.IssueRef
-	0,  // 9: triage.v1.SetEpicStateResponse.status:type_name -> triage.v1.EpicStatus
-	1,  // 10: triage.v1.TriageService.GetBoard:input_type -> triage.v1.GetBoardRequest
-	2,  // 11: triage.v1.TriageService.StreamBoard:input_type -> triage.v1.StreamBoardRequest
-	9,  // 12: triage.v1.TriageService.SetEpicState:input_type -> triage.v1.SetEpicStateRequest
-	3,  // 13: triage.v1.TriageService.GetBoard:output_type -> triage.v1.GetBoardResponse
-	4,  // 14: triage.v1.TriageService.StreamBoard:output_type -> triage.v1.StreamBoardResponse
-	10, // 15: triage.v1.TriageService.SetEpicState:output_type -> triage.v1.SetEpicStateResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	7,  // 2: triage.v1.Board.epics:type_name -> triage.v1.EpicView
+	6,  // 3: triage.v1.Board.dependencies:type_name -> triage.v1.DependencyEdge
+	9,  // 4: triage.v1.EpicView.epic:type_name -> triage.v1.IssueRef
+	0,  // 5: triage.v1.EpicView.status:type_name -> triage.v1.EpicStatus
+	8,  // 6: triage.v1.EpicView.ready:type_name -> triage.v1.Node
+	8,  // 7: triage.v1.EpicView.blockers:type_name -> triage.v1.Node
+	8,  // 8: triage.v1.EpicView.blocked:type_name -> triage.v1.Node
+	9,  // 9: triage.v1.Node.issue:type_name -> triage.v1.IssueRef
+	9,  // 10: triage.v1.Node.ancestry:type_name -> triage.v1.IssueRef
+	0,  // 11: triage.v1.SetEpicStateResponse.status:type_name -> triage.v1.EpicStatus
+	1,  // 12: triage.v1.TriageService.GetBoard:input_type -> triage.v1.GetBoardRequest
+	2,  // 13: triage.v1.TriageService.StreamBoard:input_type -> triage.v1.StreamBoardRequest
+	10, // 14: triage.v1.TriageService.SetEpicState:input_type -> triage.v1.SetEpicStateRequest
+	3,  // 15: triage.v1.TriageService.GetBoard:output_type -> triage.v1.GetBoardResponse
+	4,  // 16: triage.v1.TriageService.StreamBoard:output_type -> triage.v1.StreamBoardResponse
+	11, // 17: triage.v1.TriageService.SetEpicState:output_type -> triage.v1.SetEpicStateResponse
+	15, // [15:18] is the sub-list for method output_type
+	12, // [12:15] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_triage_v1_triage_proto_init() }
@@ -716,7 +800,7 @@ func file_triage_v1_triage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_triage_v1_triage_proto_rawDesc), len(file_triage_v1_triage_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
