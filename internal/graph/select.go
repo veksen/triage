@@ -61,12 +61,26 @@ type EpicView struct {
 	Status   Status
 	Ready    []Node // ranked, capped to TopN (StatusActive)
 	Blockers []Node // actionable open blockers (StatusStalled)
+	// Blocked are the epic's own ladder tasks held up (StatusStalled), each
+	// directly blocked by one of Blockers. With Result.Dependencies they render
+	// the chain: epic -> blocked task -> blocker.
+	Blocked []Node
+}
+
+// DependencyEdge is a native "blocked by" relationship between two rendered
+// issues: Blocked cannot start until Blocker closes.
+type DependencyEdge struct {
+	Blocked IssueID
+	Blocker IssueID
 }
 
 // Result is the full render set: one view per active epic. An empty active set
 // yields an empty result — that is correct, not an error.
 type Result struct {
 	Epics []EpicView
+	// Dependencies are the blocked-by edges among the rendered issues — the real
+	// "what blocks what" wiring the frontend draws.
+	Dependencies []DependencyEdge
 }
 
 // Options tune the render without touching the core logic. The zero value is
@@ -137,7 +151,46 @@ func Compute(g *Graph, opts Options) Result {
 	for _, e := range active {
 		res.Epics = append(res.Epics, g.buildEpicView(e, scopes, inScope, opts))
 	}
+	res.Dependencies = g.dependenciesAmong(res.Epics)
 	return res
+}
+
+// dependenciesAmong returns the blocked-by edges between issues that actually
+// render (epics, ready leaves, blockers, blocked tasks, and their ancestry).
+// Restricting to rendered endpoints keeps the client from drawing edges to
+// nodes it never placed. Output is sorted for determinism.
+func (g *Graph) dependenciesAmong(views []EpicView) []DependencyEdge {
+	rendered := map[IssueID]bool{}
+	mark := func(ns []Node) {
+		for _, n := range ns {
+			rendered[n.ID] = true
+			for _, a := range n.Ancestry {
+				rendered[a] = true
+			}
+		}
+	}
+	for _, ev := range views {
+		rendered[ev.Epic] = true
+		mark(ev.Ready)
+		mark(ev.Blockers)
+		mark(ev.Blocked)
+	}
+
+	var deps []DependencyEdge
+	for id := range rendered {
+		for _, b := range g.blockedBy[id] {
+			if rendered[b] && g.isOpen(b) {
+				deps = append(deps, DependencyEdge{Blocked: id, Blocker: b})
+			}
+		}
+	}
+	sort.Slice(deps, func(i, j int) bool {
+		if deps[i].Blocked != deps[j].Blocked {
+			return deps[i].Blocked < deps[j].Blocked
+		}
+		return deps[i].Blocker < deps[j].Blocker
+	})
+	return deps
 }
 
 // scopeOf computes scope(e): open hierarchy descendants (ladder) and the
@@ -226,6 +279,31 @@ func (g *Graph) buildEpicView(epic IssueID, scopes map[IssueID]scopeInfo, inScop
 		}
 	}
 	view.Blockers = g.rankNodes(blockers, epic, scopes, inScope, opts)
+
+	// Blocked frontier: the epic's own ladder tasks held up directly by one of
+	// the surfaced (actionable) blockers. Rendering these is what lets the map
+	// draw the real chain "epic -> blocked task -> blocker" instead of a synthetic
+	// epic->blocker link, so you can see exactly what blocks what.
+	blockerSet := make(map[IssueID]bool, len(view.Blockers))
+	for _, n := range view.Blockers {
+		blockerSet[n.ID] = true
+	}
+	var blocked []IssueID
+	for id := range si.ladder {
+		if !g.isOpen(id) || g.isReady(id) {
+			continue // only open, currently-blocked ladder tasks
+		}
+		for _, b := range g.blockedBy[id] {
+			if blockerSet[b] {
+				blocked = append(blocked, id)
+				break
+			}
+		}
+	}
+	view.Blocked = g.rankNodes(blocked, epic, scopes, inScope, opts)
+	if opts.TopN > 0 && len(view.Blocked) > opts.TopN {
+		view.Blocked = view.Blocked[:opts.TopN]
+	}
 	return view
 }
 
