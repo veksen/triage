@@ -52,6 +52,12 @@ in the top bar):
 - **list** — the structured column-per-epic detail view, for scanning exact
   ready/blocker items.
 
+Both views expose the one write — **park** an epic (`SetEpicState` active=false)
+from its node/column. The server mutates the projection and pushes a fresh board
+over the stream, so the parked epic disappears through the normal update path (no
+optimistic cache edit). Note: the board only shows *active* epics, so unparking
+needs a "parked epics" affordance the contract doesn't expose yet — a future RPC.
+
 ## Next (visual iteration)
 
 Possible refinements: collapse/expand deep ancestry, fit-to-selection, edge

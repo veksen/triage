@@ -10,6 +10,7 @@ import type { Board } from "../gen/triage/v1/triage_pb";
 import { buildBoardGraph } from "../graph/buildBoardGraph";
 import { toElk } from "../graph/layout";
 import type { GraphNode } from "../graph/model";
+import { useSetEpicState } from "../useSetEpicState";
 
 interface LaidNode extends GraphNode {
   x: number;
@@ -52,6 +53,8 @@ export function GraphView({ board }: { board: Board | undefined }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const viewportRef = useRef<SVGGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const park = useSetEpicState();
+  const parkingNumber = park.isPending ? park.variables?.epicNumber : undefined;
 
   // Layout (async). Guard against a stale board resolving after a newer one.
   useEffect(() => {
@@ -149,7 +152,12 @@ export function GraphView({ board }: { board: Board | undefined }) {
             />
           ))}
           {laid?.nodes.map((n) => (
-            <GraphNodeView key={n.id} node={n} />
+            <GraphNodeView
+              key={n.id}
+              node={n}
+              onPark={n.kind === "epic" ? (epicNumber) => park.mutate({ epicNumber, active: false }) : undefined}
+              parking={n.number === parkingNumber}
+            />
           ))}
         </g>
       </svg>
@@ -158,10 +166,20 @@ export function GraphView({ board }: { board: Board | undefined }) {
   );
 }
 
-function GraphNodeView({ node }: { node: LaidNode }) {
+function GraphNodeView({
+  node,
+  onPark,
+  parking,
+}: {
+  node: LaidNode;
+  onPark?: (epicNumber: number) => void;
+  parking?: boolean;
+}) {
   const epicSlug = node.kind === "epic" && node.status !== undefined ? STATUS_SLUG[node.status] : "";
   const cls = `gnode gnode--${node.kind}${epicSlug ? ` gnode--epic-${epicSlug}` : ""}`;
-  const maxChars = Math.max(4, Math.floor((node.w - 22) / 7));
+  // Leave room for the park button on epic nodes so the title never overlaps it.
+  const rightInset = onPark ? 52 : 22;
+  const maxChars = Math.max(4, Math.floor((node.w - rightInset) / 7));
   const title = node.title.length > maxChars ? node.title.slice(0, maxChars - 1) + "…" : node.title;
 
   return (
@@ -175,9 +193,30 @@ function GraphNodeView({ node }: { node: LaidNode }) {
         <text className="gnode-title" x={11} y={35}>
           {title}
         </text>
-        {node.highLeverage && <circle className="dot dot--high" cx={node.w - 13} cy={13} r={4} />}
-        {node.multiEpic && <circle className="dot dot--multi" cx={node.w - 13} cy={node.multiEpic && node.highLeverage ? 27 : 13} r={4} />}
+        {!onPark && node.highLeverage && <circle className="dot dot--high" cx={node.w - 13} cy={13} r={4} />}
+        {!onPark && node.multiEpic && (
+          <circle className="dot dot--multi" cx={node.w - 13} cy={node.highLeverage ? 27 : 13} r={4} />
+        )}
       </a>
+
+      {onPark && (
+        // Sibling of the <a>, painted on top, so the click parks rather than
+        // following the issue link.
+        <g
+          className={`park-node ${parking ? "is-parking" : ""}`}
+          transform={`translate(${node.w - 46},8)`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!parking) onPark(node.number);
+          }}
+        >
+          <rect className="park-node-bg" width={38} height={16} rx={5} />
+          <text className="park-node-text" x={19} y={12}>
+            {parking ? "…" : "park"}
+          </text>
+        </g>
+      )}
     </g>
   );
 }

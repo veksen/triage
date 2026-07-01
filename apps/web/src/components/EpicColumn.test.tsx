@@ -1,5 +1,5 @@
-import { test, expect, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { test, expect, afterEach, vi } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { create } from "@bufbuild/protobuf";
 import { EpicColumn } from "./EpicColumn";
 import {
@@ -53,6 +53,27 @@ test("a STALLED epic shows blockers and the why-stuck hint", () => {
   expect(screen.getByText("stalled")).toBeTruthy();
   expect(screen.getByText(/holding it up/i)).toBeTruthy();
   expect(screen.getByText("External prerequisite")).toBeTruthy();
+});
+
+test("no park control unless onPark is provided", () => {
+  const epic = create(EpicViewSchema, { epic: ref(7, "X"), status: EpicStatus.ACTIVE });
+  render(<EpicColumn epic={epic} />);
+  expect(screen.queryByText("park")).toBeNull();
+});
+
+test("clicking park invokes onPark with the epic number", () => {
+  const onPark = vi.fn();
+  const epic = create(EpicViewSchema, { epic: ref(7, "Ship dashboard"), status: EpicStatus.ACTIVE });
+  render(<EpicColumn epic={epic} onPark={onPark} />);
+  fireEvent.click(screen.getByText("park"));
+  expect(onPark).toHaveBeenCalledWith(7);
+});
+
+test("park control shows a pending label and is disabled while parking", () => {
+  const epic = create(EpicViewSchema, { epic: ref(7, "X"), status: EpicStatus.ACTIVE });
+  render(<EpicColumn epic={epic} onPark={vi.fn()} parking />);
+  const btn = screen.getByText("parking…");
+  expect((btn as HTMLButtonElement).disabled).toBe(true);
 });
 
 test("an EMPTY epic renders the no-open-work state", () => {

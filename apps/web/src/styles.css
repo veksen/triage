@@ -370,3 +370,45 @@ a:hover > .gnode {
   border-top: 2px dashed var(--stalled);
   display: inline-block;
 }
+
+/* --- park controls (SetEpicState write path) --- */
+.park-btn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.park-btn:hover:not(:disabled) {
+  color: var(--stalled);
+  border-color: color-mix(in srgb, var(--stalled) 55%, transparent);
+}
+.park-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.park-node {
+  cursor: pointer;
+}
+.park-node-bg {
+  fill: #0d1117;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.park-node:hover .park-node-bg {
+  stroke: var(--stalled);
+}
+.park-node-text {
+  fill: var(--muted);
+  font-size: 10px;
+  text-anchor: middle;
+}
+.park-node:hover .park-node-text {
+  fill: var(--stalled);
+}
+.park-node.is-parking {
+  cursor: progress;
+}

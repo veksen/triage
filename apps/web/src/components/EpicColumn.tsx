@@ -16,12 +16,21 @@ const STATUS_LABEL: Record<EpicStatus, string> = {
   [EpicStatus.EMPTY]: "no open work",
 };
 
+interface EpicColumnProps {
+  epic: EpicView;
+  // onPark, when provided, renders a park control that removes the epic from the
+  // board (SetEpicState active=false). parking marks it in flight.
+  onPark?: (epicNumber: number) => void;
+  parking?: boolean;
+}
+
 // EpicColumn renders one active epic: its ready frontier when ACTIVE, or the
 // actionable blockers holding it up when STALLED ("what's next" vs "why stuck").
-export function EpicColumn({ epic }: { epic: EpicView }) {
+export function EpicColumn({ epic, onPark, parking }: EpicColumnProps) {
   const stalled = epic.status === EpicStatus.STALLED;
   const slug = STATUS_SLUG[epic.status];
   const nodes = stalled ? epic.blockers : epic.ready;
+  const epicNumber = epic.epic ? Number(epic.epic.number) : undefined;
 
   return (
     <section className={`epic epic--${slug}`}>
@@ -31,6 +40,17 @@ export function EpicColumn({ epic }: { epic: EpicView }) {
         </a>
         <h2 className="epic-title">{epic.epic?.title || "(untitled epic)"}</h2>
         <span className={`badge badge--${slug}`}>{STATUS_LABEL[epic.status]}</span>
+        {onPark && epicNumber !== undefined && (
+          <button
+            type="button"
+            className="park-btn"
+            disabled={parking}
+            title="Park this epic — removes its ladder from the board"
+            onClick={() => onPark(epicNumber)}
+          >
+            {parking ? "parking…" : "park"}
+          </button>
+        )}
       </header>
 
       {stalled && (
