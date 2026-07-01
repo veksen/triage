@@ -504,3 +504,9 @@ a:hover > .gnode {
   cursor: pointer;
 }
 .graph-toolbar button:hover { border-color: var(--accent); }
+
+/* --- blocked (held-up) task: distinct from its blocker --- */
+:root { --blocked: #f0776a; }
+.gnode--blocked { stroke: color-mix(in srgb, var(--blocked) 60%, var(--border)); }
+.gnode-accent--blocked { fill: var(--blocked); }
+.swatch--blocked { border-color: var(--blocked); }

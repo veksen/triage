@@ -5,7 +5,7 @@ import type { EpicStatus } from "../gen/triage/v1/triage_pb";
 // edges from a stalled epic to the prerequisite holding it up. Nodes shared
 // across epics are deduped into one vertex (the high-value convergence case).
 
-export type NodeKind = "epic" | "ready" | "blocker" | "ancestry";
+export type NodeKind = "epic" | "ready" | "blocked" | "blocker" | "ancestry";
 
 export interface GraphNode {
   id: string; // issue number as string (ELK node id)

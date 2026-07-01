@@ -43,20 +43,36 @@ test("an ACTIVE epic links epic -> ancestry -> ready leaf with hierarchy edges",
   expect(findEdge(g.edges, 1, 5)?.kind).toBe("hierarchy");
 });
 
-test("a STALLED epic links epic -> blocker with a dashed blocks edge", () => {
+test("a STALLED epic renders the chain epic -> blocked task -> blocker", () => {
   const board = create(BoardSchema, {
     epics: [
       create(EpicViewSchema, {
         epic: ref(1),
         status: EpicStatus.STALLED,
         blockers: [create(NodeSchema, { issue: ref(99, "External prerequisite") })],
+        blocked: [create(NodeSchema, { issue: ref(10, "Held-up task"), ancestry: [ref(1)] })],
       }),
     ],
+    dependencies: [{ blocked: 10n, blocker: 99n }],
   });
 
   const g = buildBoardGraph(board);
+  expect(g.nodes.find((n) => n.number === 10)?.kind).toBe("blocked");
   expect(g.nodes.find((n) => n.number === 99)?.kind).toBe("blocker");
-  expect(findEdge(g.edges, 1, 99)?.kind).toBe("blocks");
+  // chain: epic 1 -contains-> task 10 -blocked by-> blocker 99
+  expect(findEdge(g.edges, 1, 10)?.kind).toBe("hierarchy");
+  expect(findEdge(g.edges, 10, 99)?.kind).toBe("blocks");
+  // no synthetic epic -> blocker edge
+  expect(findEdge(g.edges, 1, 99)).toBeUndefined();
+});
+
+test("a dependency edge to a non-rendered issue is dropped", () => {
+  const board = create(BoardSchema, {
+    epics: [create(EpicViewSchema, { epic: ref(1), status: EpicStatus.ACTIVE, ready: [create(NodeSchema, { issue: ref(10) })] })],
+    dependencies: [{ blocked: 10n, blocker: 777n }], // 777 is not on the board
+  });
+  const g = buildBoardGraph(board);
+  expect(findEdge(g.edges, 10, 777)).toBeUndefined();
 });
 
 test("a node serving two epics is deduped into one vertex with both edges", () => {

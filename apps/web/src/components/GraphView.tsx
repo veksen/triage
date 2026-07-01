@@ -222,6 +222,9 @@ export function GraphView({ board }: { board: Board | undefined }) {
           <span className="swatch swatch--ready" /> ready leaf
         </li>
         <li>
+          <span className="swatch swatch--blocked" /> blocked task
+        </li>
+        <li>
           <span className="swatch swatch--blocker" /> blocker
         </li>
         <li>

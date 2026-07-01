@@ -48,10 +48,11 @@ in the top bar):
   (right-angle) edge routing (the DAG layout raw d3 can't do); **d3** renders it
   — `d3-shape` for the wiring, `d3-zoom` for pan/zoom, plus a Fit/zoom control
   bar. Epics anchor the top and colour by status; ready work hangs off "contains"
-  edges; a stalled epic wires to its prerequisite via a bold, dashed **"blocked
-  by"** edge, and each node carries its leverage (`unblocks N`) as the *why*.
-  `src/graph/buildBoardGraph.ts` is the pure, unit-tested Board→DAG transform.
-  Colours are tuned for APCA legibility on the dark surfaces.
+  edges; a stalled epic renders the real chain **epic → blocked task → blocker**,
+  the held-up task (red) wired to its culprit (amber) by a bold, dashed **"blocked
+  by"** edge from `Board.dependencies`, and each node carries its leverage
+  (`unblocks N`) as the *why*. `src/graph/buildBoardGraph.ts` is the pure,
+  unit-tested Board→DAG transform. Colours are tuned for APCA legibility.
 - **list** — the structured column-per-epic detail view, for scanning exact
   ready/blocker items.
 
