@@ -65,6 +65,26 @@ func TestBoardMapsStallToBlockers(t *testing.T) {
 	}
 }
 
+func TestBoardMapsBlockedTasksAndDependencyEdges(t *testing.T) {
+	g := graph.NewGraph()
+	g.AddIssue(graph.Issue{ID: 1, State: graph.Open, IsEpic: true})
+	g.AddIssue(graph.Issue{ID: 10, Title: "Blocked task", State: graph.Open})
+	g.AddIssue(graph.Issue{ID: 99, Title: "External prerequisite", State: graph.Open})
+	g.AddHierarchy(1, 10)
+	g.AddDependency(10, 99) // 10 blocked by 99
+
+	board := NewBoardBuilder(g, repoURL).Board(graph.Compute(g, graph.Options{}))
+	ev := board.GetEpics()[0]
+
+	if len(ev.GetBlocked()) != 1 || ev.GetBlocked()[0].GetIssue().GetNumber() != 10 {
+		t.Fatalf("blocked = %+v, want single held-up task #10", ev.GetBlocked())
+	}
+	deps := board.GetDependencies()
+	if len(deps) != 1 || deps[0].GetBlocked() != 10 || deps[0].GetBlocker() != 99 {
+		t.Fatalf("dependencies = %+v, want single edge {blocked:10, blocker:99}", deps)
+	}
+}
+
 func TestBoardEmptyWhenNoActiveEpics(t *testing.T) {
 	g := graph.NewGraph()
 	g.AddIssue(graph.Issue{ID: 1, State: graph.Open, IsEpic: true, Labels: []string{"parked"}})

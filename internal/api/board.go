@@ -33,9 +33,21 @@ func (b *BoardBuilder) Board(res graph.Result) *triagev1.Board {
 			Status:   toStatus(ev.Status),
 			Ready:    b.nodes(ev.Ready),
 			Blockers: b.nodes(ev.Blockers),
+			Blocked:  b.nodes(ev.Blocked),
 		})
 	}
-	return &triagev1.Board{Epics: epics}
+	return &triagev1.Board{Epics: epics, Dependencies: dependencies(res.Dependencies)}
+}
+
+func dependencies(ds []graph.DependencyEdge) []*triagev1.DependencyEdge {
+	if len(ds) == 0 {
+		return nil
+	}
+	out := make([]*triagev1.DependencyEdge, 0, len(ds))
+	for _, d := range ds {
+		out = append(out, &triagev1.DependencyEdge{Blocked: int64(d.Blocked), Blocker: int64(d.Blocker)})
+	}
+	return out
 }
 
 func (b *BoardBuilder) nodes(ns []graph.Node) []*triagev1.Node {
