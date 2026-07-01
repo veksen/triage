@@ -50,55 +50,6 @@ func TestApplyRecomputesBoard(t *testing.T) {
 	}
 }
 
-func TestSetEpicStateParkRemovesEpicAndUnparkRestores(t *testing.T) {
-	e := fixture()
-
-	status, ok := e.SetEpicState(1, false) // park
-	if !ok {
-		t.Fatal("SetEpicState(park) ok = false, want true for known epic")
-	}
-	if status != triagev1.EpicStatus_EPIC_STATUS_UNSPECIFIED {
-		t.Fatalf("parked status = %v, want UNSPECIFIED (off the board)", status)
-	}
-	if n := len(e.Board().GetEpics()); n != 0 {
-		t.Fatalf("epics = %d after park, want 0", n)
-	}
-
-	status, ok = e.SetEpicState(1, true) // unpark
-	if !ok {
-		t.Fatal("SetEpicState(unpark) ok = false, want true")
-	}
-	if status != triagev1.EpicStatus_EPIC_STATUS_ACTIVE {
-		t.Fatalf("unparked status = %v, want ACTIVE", status)
-	}
-	if n := len(e.Board().GetEpics()); n != 1 {
-		t.Fatalf("epics = %d after unpark, want 1", n)
-	}
-}
-
-func TestSetEpicStateUnknownEpic(t *testing.T) {
-	e := New(nil, Config{})
-	if _, ok := e.SetEpicState(404, true); ok {
-		t.Fatal("SetEpicState on unknown epic ok = true, want false")
-	}
-}
-
-func TestSetEpicStateIsIdempotentOnLabels(t *testing.T) {
-	e := fixture()
-	e.SetEpicState(1, false) // park
-	e.SetEpicState(1, false) // park again — must not duplicate the label
-	iss, _ := e.g.Issue(1)
-	count := 0
-	for _, l := range iss.Labels {
-		if l == "parked" {
-			count++
-		}
-	}
-	if count != 1 {
-		t.Fatalf("parked label appears %d times, want 1 (no duplication)", count)
-	}
-}
-
 func TestSubscribePrimesWithCurrentBoard(t *testing.T) {
 	e := fixture()
 	sub, cancel := e.Subscribe()

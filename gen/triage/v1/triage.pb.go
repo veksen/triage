@@ -582,104 +582,6 @@ func (x *IssueRef) GetOpen() bool {
 	return false
 }
 
-type SetEpicStateRequest struct {
-	state      protoimpl.MessageState `protogen:"open.v1"`
-	EpicNumber int64                  `protobuf:"varint,1,opt,name=epic_number,json=epicNumber,proto3" json:"epic_number,omitempty"`
-	// active=true drives the epic (clears the parked marker); active=false parks
-	// it, removing its ladder from the board.
-	Active        bool `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetEpicStateRequest) Reset() {
-	*x = SetEpicStateRequest{}
-	mi := &file_triage_v1_triage_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetEpicStateRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetEpicStateRequest) ProtoMessage() {}
-
-func (x *SetEpicStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetEpicStateRequest.ProtoReflect.Descriptor instead.
-func (*SetEpicStateRequest) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *SetEpicStateRequest) GetEpicNumber() int64 {
-	if x != nil {
-		return x.EpicNumber
-	}
-	return 0
-}
-
-func (x *SetEpicStateRequest) GetActive() bool {
-	if x != nil {
-		return x.Active
-	}
-	return false
-}
-
-type SetEpicStateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        EpicStatus             `protobuf:"varint,1,opt,name=status,proto3,enum=triage.v1.EpicStatus" json:"status,omitempty"` // resulting status after the change
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetEpicStateResponse) Reset() {
-	*x = SetEpicStateResponse{}
-	mi := &file_triage_v1_triage_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetEpicStateResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetEpicStateResponse) ProtoMessage() {}
-
-func (x *SetEpicStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_triage_v1_triage_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetEpicStateResponse.ProtoReflect.Descriptor instead.
-func (*SetEpicStateResponse) Descriptor() ([]byte, []int) {
-	return file_triage_v1_triage_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *SetEpicStateResponse) GetStatus() EpicStatus {
-	if x != nil {
-		return x.Status
-	}
-	return EpicStatus_EPIC_STATUS_UNSPECIFIED
-}
-
 var File_triage_v1_triage_proto protoreflect.FileDescriptor
 
 const file_triage_v1_triage_proto_rawDesc = "" +
@@ -715,23 +617,16 @@ const file_triage_v1_triage_proto_rawDesc = "" +
 	"\x06number\x18\x01 \x01(\x03R\x06number\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x10\n" +
 	"\x03url\x18\x03 \x01(\tR\x03url\x12\x12\n" +
-	"\x04open\x18\x04 \x01(\bR\x04open\"N\n" +
-	"\x13SetEpicStateRequest\x12\x1f\n" +
-	"\vepic_number\x18\x01 \x01(\x03R\n" +
-	"epicNumber\x12\x16\n" +
-	"\x06active\x18\x02 \x01(\bR\x06active\"E\n" +
-	"\x14SetEpicStateResponse\x12-\n" +
-	"\x06status\x18\x01 \x01(\x0e2\x15.triage.v1.EpicStatusR\x06status*q\n" +
+	"\x04open\x18\x04 \x01(\bR\x04open*q\n" +
 	"\n" +
 	"EpicStatus\x12\x1b\n" +
 	"\x17EPIC_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12EPIC_STATUS_ACTIVE\x10\x01\x12\x17\n" +
 	"\x13EPIC_STATUS_STALLED\x10\x02\x12\x15\n" +
-	"\x11EPIC_STATUS_EMPTY\x10\x032\xfb\x01\n" +
+	"\x11EPIC_STATUS_EMPTY\x10\x032\xa8\x01\n" +
 	"\rTriageService\x12E\n" +
 	"\bGetBoard\x12\x1a.triage.v1.GetBoardRequest\x1a\x1b.triage.v1.GetBoardResponse\"\x00\x12P\n" +
-	"\vStreamBoard\x12\x1d.triage.v1.StreamBoardRequest\x1a\x1e.triage.v1.StreamBoardResponse\"\x000\x01\x12Q\n" +
-	"\fSetEpicState\x12\x1e.triage.v1.SetEpicStateRequest\x1a\x1f.triage.v1.SetEpicStateResponse\"\x00B\x92\x01\n" +
+	"\vStreamBoard\x12\x1d.triage.v1.StreamBoardRequest\x1a\x1e.triage.v1.StreamBoardResponse\"\x000\x01B\x92\x01\n" +
 	"\rcom.triage.v1B\vTriageProtoP\x01Z/github.com/veksen/triage/gen/triage/v1;triagev1\xa2\x02\x03TXX\xaa\x02\tTriage.V1\xca\x02\tTriage\\V1\xe2\x02\x15Triage\\V1\\GPBMetadata\xea\x02\n" +
 	"Triage::V1b\x06proto3"
 
@@ -748,20 +643,18 @@ func file_triage_v1_triage_proto_rawDescGZIP() []byte {
 }
 
 var file_triage_v1_triage_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_triage_v1_triage_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_triage_v1_triage_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_triage_v1_triage_proto_goTypes = []any{
-	(EpicStatus)(0),              // 0: triage.v1.EpicStatus
-	(*GetBoardRequest)(nil),      // 1: triage.v1.GetBoardRequest
-	(*StreamBoardRequest)(nil),   // 2: triage.v1.StreamBoardRequest
-	(*GetBoardResponse)(nil),     // 3: triage.v1.GetBoardResponse
-	(*StreamBoardResponse)(nil),  // 4: triage.v1.StreamBoardResponse
-	(*Board)(nil),                // 5: triage.v1.Board
-	(*DependencyEdge)(nil),       // 6: triage.v1.DependencyEdge
-	(*EpicView)(nil),             // 7: triage.v1.EpicView
-	(*Node)(nil),                 // 8: triage.v1.Node
-	(*IssueRef)(nil),             // 9: triage.v1.IssueRef
-	(*SetEpicStateRequest)(nil),  // 10: triage.v1.SetEpicStateRequest
-	(*SetEpicStateResponse)(nil), // 11: triage.v1.SetEpicStateResponse
+	(EpicStatus)(0),             // 0: triage.v1.EpicStatus
+	(*GetBoardRequest)(nil),     // 1: triage.v1.GetBoardRequest
+	(*StreamBoardRequest)(nil),  // 2: triage.v1.StreamBoardRequest
+	(*GetBoardResponse)(nil),    // 3: triage.v1.GetBoardResponse
+	(*StreamBoardResponse)(nil), // 4: triage.v1.StreamBoardResponse
+	(*Board)(nil),               // 5: triage.v1.Board
+	(*DependencyEdge)(nil),      // 6: triage.v1.DependencyEdge
+	(*EpicView)(nil),            // 7: triage.v1.EpicView
+	(*Node)(nil),                // 8: triage.v1.Node
+	(*IssueRef)(nil),            // 9: triage.v1.IssueRef
 }
 var file_triage_v1_triage_proto_depIdxs = []int32{
 	5,  // 0: triage.v1.GetBoardResponse.board:type_name -> triage.v1.Board
@@ -775,18 +668,15 @@ var file_triage_v1_triage_proto_depIdxs = []int32{
 	8,  // 8: triage.v1.EpicView.blocked:type_name -> triage.v1.Node
 	9,  // 9: triage.v1.Node.issue:type_name -> triage.v1.IssueRef
 	9,  // 10: triage.v1.Node.ancestry:type_name -> triage.v1.IssueRef
-	0,  // 11: triage.v1.SetEpicStateResponse.status:type_name -> triage.v1.EpicStatus
-	1,  // 12: triage.v1.TriageService.GetBoard:input_type -> triage.v1.GetBoardRequest
-	2,  // 13: triage.v1.TriageService.StreamBoard:input_type -> triage.v1.StreamBoardRequest
-	10, // 14: triage.v1.TriageService.SetEpicState:input_type -> triage.v1.SetEpicStateRequest
-	3,  // 15: triage.v1.TriageService.GetBoard:output_type -> triage.v1.GetBoardResponse
-	4,  // 16: triage.v1.TriageService.StreamBoard:output_type -> triage.v1.StreamBoardResponse
-	11, // 17: triage.v1.TriageService.SetEpicState:output_type -> triage.v1.SetEpicStateResponse
-	15, // [15:18] is the sub-list for method output_type
-	12, // [12:15] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	1,  // 11: triage.v1.TriageService.GetBoard:input_type -> triage.v1.GetBoardRequest
+	2,  // 12: triage.v1.TriageService.StreamBoard:input_type -> triage.v1.StreamBoardRequest
+	3,  // 13: triage.v1.TriageService.GetBoard:output_type -> triage.v1.GetBoardResponse
+	4,  // 14: triage.v1.TriageService.StreamBoard:output_type -> triage.v1.StreamBoardResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_triage_v1_triage_proto_init() }
@@ -800,7 +690,7 @@ func file_triage_v1_triage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_triage_v1_triage_proto_rawDesc), len(file_triage_v1_triage_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

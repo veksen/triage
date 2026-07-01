@@ -45,44 +45,6 @@ func TestGetBoardReturnsSnapshot(t *testing.T) {
 	}
 }
 
-func TestSetEpicStateParksEpic(t *testing.T) {
-	client := newTestServer(t, fixtureEngine())
-
-	resp, err := client.SetEpicState(context.Background(), connect.NewRequest(&triagev1.SetEpicStateRequest{
-		EpicNumber: 1,
-		Active:     false,
-	}))
-	if err != nil {
-		t.Fatalf("SetEpicState: %v", err)
-	}
-	if got := resp.Msg.GetStatus(); got != triagev1.EpicStatus_EPIC_STATUS_UNSPECIFIED {
-		t.Fatalf("status = %v, want UNSPECIFIED for a parked epic", got)
-	}
-
-	board, err := client.GetBoard(context.Background(), connect.NewRequest(&triagev1.GetBoardRequest{}))
-	if err != nil {
-		t.Fatalf("GetBoard: %v", err)
-	}
-	if n := len(board.Msg.GetBoard().GetEpics()); n != 0 {
-		t.Fatalf("epics = %d after park, want 0", n)
-	}
-}
-
-func TestSetEpicStateUnknownEpicIsNotFound(t *testing.T) {
-	client := newTestServer(t, fixtureEngine())
-
-	_, err := client.SetEpicState(context.Background(), connect.NewRequest(&triagev1.SetEpicStateRequest{
-		EpicNumber: 404,
-		Active:     true,
-	}))
-	if err == nil {
-		t.Fatal("SetEpicState on unknown epic: err = nil, want NotFound")
-	}
-	if got := connect.CodeOf(err); got != connect.CodeNotFound {
-		t.Fatalf("code = %v, want NotFound", got)
-	}
-}
-
 func TestStreamBoardPushesSnapshotThenUpdate(t *testing.T) {
 	eng := engine.New(graph.NewGraph(), engine.Config{})
 	client := newTestServer(t, eng)

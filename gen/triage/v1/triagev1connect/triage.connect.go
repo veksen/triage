@@ -38,9 +38,6 @@ const (
 	// TriageServiceStreamBoardProcedure is the fully-qualified name of the TriageService's StreamBoard
 	// RPC.
 	TriageServiceStreamBoardProcedure = "/triage.v1.TriageService/StreamBoard"
-	// TriageServiceSetEpicStateProcedure is the fully-qualified name of the TriageService's
-	// SetEpicState RPC.
-	TriageServiceSetEpicStateProcedure = "/triage.v1.TriageService/SetEpicState"
 )
 
 // TriageServiceClient is a client for the triage.v1.TriageService service.
@@ -52,8 +49,6 @@ type TriageServiceClient interface {
 	// snapshots, not deltas — the set is small, so the stream is idempotent and
 	// self-healing across reconnects.
 	StreamBoard(context.Context, *connect.Request[v1.StreamBoardRequest]) (*connect.ServerStreamForClient[v1.StreamBoardResponse], error)
-	// SetEpicState is the single write path: drive an epic or park it.
-	SetEpicState(context.Context, *connect.Request[v1.SetEpicStateRequest]) (*connect.Response[v1.SetEpicStateResponse], error)
 }
 
 // NewTriageServiceClient constructs a client for the triage.v1.TriageService service. By default,
@@ -79,20 +74,13 @@ func NewTriageServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(triageServiceMethods.ByName("StreamBoard")),
 			connect.WithClientOptions(opts...),
 		),
-		setEpicState: connect.NewClient[v1.SetEpicStateRequest, v1.SetEpicStateResponse](
-			httpClient,
-			baseURL+TriageServiceSetEpicStateProcedure,
-			connect.WithSchema(triageServiceMethods.ByName("SetEpicState")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
 // triageServiceClient implements TriageServiceClient.
 type triageServiceClient struct {
-	getBoard     *connect.Client[v1.GetBoardRequest, v1.GetBoardResponse]
-	streamBoard  *connect.Client[v1.StreamBoardRequest, v1.StreamBoardResponse]
-	setEpicState *connect.Client[v1.SetEpicStateRequest, v1.SetEpicStateResponse]
+	getBoard    *connect.Client[v1.GetBoardRequest, v1.GetBoardResponse]
+	streamBoard *connect.Client[v1.StreamBoardRequest, v1.StreamBoardResponse]
 }
 
 // GetBoard calls triage.v1.TriageService.GetBoard.
@@ -105,11 +93,6 @@ func (c *triageServiceClient) StreamBoard(ctx context.Context, req *connect.Requ
 	return c.streamBoard.CallServerStream(ctx, req)
 }
 
-// SetEpicState calls triage.v1.TriageService.SetEpicState.
-func (c *triageServiceClient) SetEpicState(ctx context.Context, req *connect.Request[v1.SetEpicStateRequest]) (*connect.Response[v1.SetEpicStateResponse], error) {
-	return c.setEpicState.CallUnary(ctx, req)
-}
-
 // TriageServiceHandler is an implementation of the triage.v1.TriageService service.
 type TriageServiceHandler interface {
 	// GetBoard returns the current render set: one view per active epic.
@@ -119,8 +102,6 @@ type TriageServiceHandler interface {
 	// snapshots, not deltas — the set is small, so the stream is idempotent and
 	// self-healing across reconnects.
 	StreamBoard(context.Context, *connect.Request[v1.StreamBoardRequest], *connect.ServerStream[v1.StreamBoardResponse]) error
-	// SetEpicState is the single write path: drive an epic or park it.
-	SetEpicState(context.Context, *connect.Request[v1.SetEpicStateRequest]) (*connect.Response[v1.SetEpicStateResponse], error)
 }
 
 // NewTriageServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -142,20 +123,12 @@ func NewTriageServiceHandler(svc TriageServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(triageServiceMethods.ByName("StreamBoard")),
 		connect.WithHandlerOptions(opts...),
 	)
-	triageServiceSetEpicStateHandler := connect.NewUnaryHandler(
-		TriageServiceSetEpicStateProcedure,
-		svc.SetEpicState,
-		connect.WithSchema(triageServiceMethods.ByName("SetEpicState")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/triage.v1.TriageService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TriageServiceGetBoardProcedure:
 			triageServiceGetBoardHandler.ServeHTTP(w, r)
 		case TriageServiceStreamBoardProcedure:
 			triageServiceStreamBoardHandler.ServeHTTP(w, r)
-		case TriageServiceSetEpicStateProcedure:
-			triageServiceSetEpicStateHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -171,8 +144,4 @@ func (UnimplementedTriageServiceHandler) GetBoard(context.Context, *connect.Requ
 
 func (UnimplementedTriageServiceHandler) StreamBoard(context.Context, *connect.Request[v1.StreamBoardRequest], *connect.ServerStream[v1.StreamBoardResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("triage.v1.TriageService.StreamBoard is not implemented"))
-}
-
-func (UnimplementedTriageServiceHandler) SetEpicState(context.Context, *connect.Request[v1.SetEpicStateRequest]) (*connect.Response[v1.SetEpicStateResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("triage.v1.TriageService.SetEpicState is not implemented"))
 }

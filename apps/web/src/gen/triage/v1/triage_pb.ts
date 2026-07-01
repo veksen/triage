@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file triage/v1/triage.proto.
  */
 export const file_triage_v1_triage: GenFile = /*@__PURE__*/
-  fileDesc("ChZ0cmlhZ2UvdjEvdHJpYWdlLnByb3RvEgl0cmlhZ2UudjEiEQoPR2V0Qm9hcmRSZXF1ZXN0IhQKElN0cmVhbUJvYXJkUmVxdWVzdCIzChBHZXRCb2FyZFJlc3BvbnNlEh8KBWJvYXJkGAEgASgLMhAudHJpYWdlLnYxLkJvYXJkIjYKE1N0cmVhbUJvYXJkUmVzcG9uc2USHwoFYm9hcmQYASABKAsyEC50cmlhZ2UudjEuQm9hcmQiXAoFQm9hcmQSIgoFZXBpY3MYASADKAsyEy50cmlhZ2UudjEuRXBpY1ZpZXcSLwoMZGVwZW5kZW5jaWVzGAIgAygLMhkudHJpYWdlLnYxLkRlcGVuZGVuY3lFZGdlIjIKDkRlcGVuZGVuY3lFZGdlEg8KB2Jsb2NrZWQYASABKAMSDwoHYmxvY2tlchgCIAEoAyK5AQoIRXBpY1ZpZXcSIQoEZXBpYxgBIAEoCzITLnRyaWFnZS52MS5Jc3N1ZVJlZhIlCgZzdGF0dXMYAiABKA4yFS50cmlhZ2UudjEuRXBpY1N0YXR1cxIeCgVyZWFkeRgDIAMoCzIPLnRyaWFnZS52MS5Ob2RlEiEKCGJsb2NrZXJzGAQgAygLMg8udHJpYWdlLnYxLk5vZGUSIAoHYmxvY2tlZBgFIAMoCzIPLnRyaWFnZS52MS5Ob2RlIqQBCgROb2RlEiIKBWlzc3VlGAEgASgLMhMudHJpYWdlLnYxLklzc3VlUmVmEhAKCGxldmVyYWdlGAIgASgFEiUKCGFuY2VzdHJ5GAMgAygLMhMudHJpYWdlLnYxLklzc3VlUmVmEhQKDHNlcnZlc19lcGljcxgEIAMoAxISCgptdWx0aV9lcGljGAUgASgIEhUKDWhpZ2hfbGV2ZXJhZ2UYBiABKAgiRAoISXNzdWVSZWYSDgoGbnVtYmVyGAEgASgDEg0KBXRpdGxlGAIgASgJEgsKA3VybBgDIAEoCRIMCgRvcGVuGAQgASgIIjoKE1NldEVwaWNTdGF0ZVJlcXVlc3QSEwoLZXBpY19udW1iZXIYASABKAMSDgoGYWN0aXZlGAIgASgIIj0KFFNldEVwaWNTdGF0ZVJlc3BvbnNlEiUKBnN0YXR1cxgBIAEoDjIVLnRyaWFnZS52MS5FcGljU3RhdHVzKnEKCkVwaWNTdGF0dXMSGwoXRVBJQ19TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJFUElDX1NUQVRVU19BQ1RJVkUQARIXChNFUElDX1NUQVRVU19TVEFMTEVEEAISFQoRRVBJQ19TVEFUVVNfRU1QVFkQAzL7AQoNVHJpYWdlU2VydmljZRJFCghHZXRCb2FyZBIaLnRyaWFnZS52MS5HZXRCb2FyZFJlcXVlc3QaGy50cmlhZ2UudjEuR2V0Qm9hcmRSZXNwb25zZSIAElAKC1N0cmVhbUJvYXJkEh0udHJpYWdlLnYxLlN0cmVhbUJvYXJkUmVxdWVzdBoeLnRyaWFnZS52MS5TdHJlYW1Cb2FyZFJlc3BvbnNlIgAwARJRCgxTZXRFcGljU3RhdGUSHi50cmlhZ2UudjEuU2V0RXBpY1N0YXRlUmVxdWVzdBofLnRyaWFnZS52MS5TZXRFcGljU3RhdGVSZXNwb25zZSIAYgZwcm90bzM");
+  fileDesc("ChZ0cmlhZ2UvdjEvdHJpYWdlLnByb3RvEgl0cmlhZ2UudjEiEQoPR2V0Qm9hcmRSZXF1ZXN0IhQKElN0cmVhbUJvYXJkUmVxdWVzdCIzChBHZXRCb2FyZFJlc3BvbnNlEh8KBWJvYXJkGAEgASgLMhAudHJpYWdlLnYxLkJvYXJkIjYKE1N0cmVhbUJvYXJkUmVzcG9uc2USHwoFYm9hcmQYASABKAsyEC50cmlhZ2UudjEuQm9hcmQiXAoFQm9hcmQSIgoFZXBpY3MYASADKAsyEy50cmlhZ2UudjEuRXBpY1ZpZXcSLwoMZGVwZW5kZW5jaWVzGAIgAygLMhkudHJpYWdlLnYxLkRlcGVuZGVuY3lFZGdlIjIKDkRlcGVuZGVuY3lFZGdlEg8KB2Jsb2NrZWQYASABKAMSDwoHYmxvY2tlchgCIAEoAyK5AQoIRXBpY1ZpZXcSIQoEZXBpYxgBIAEoCzITLnRyaWFnZS52MS5Jc3N1ZVJlZhIlCgZzdGF0dXMYAiABKA4yFS50cmlhZ2UudjEuRXBpY1N0YXR1cxIeCgVyZWFkeRgDIAMoCzIPLnRyaWFnZS52MS5Ob2RlEiEKCGJsb2NrZXJzGAQgAygLMg8udHJpYWdlLnYxLk5vZGUSIAoHYmxvY2tlZBgFIAMoCzIPLnRyaWFnZS52MS5Ob2RlIqQBCgROb2RlEiIKBWlzc3VlGAEgASgLMhMudHJpYWdlLnYxLklzc3VlUmVmEhAKCGxldmVyYWdlGAIgASgFEiUKCGFuY2VzdHJ5GAMgAygLMhMudHJpYWdlLnYxLklzc3VlUmVmEhQKDHNlcnZlc19lcGljcxgEIAMoAxISCgptdWx0aV9lcGljGAUgASgIEhUKDWhpZ2hfbGV2ZXJhZ2UYBiABKAgiRAoISXNzdWVSZWYSDgoGbnVtYmVyGAEgASgDEg0KBXRpdGxlGAIgASgJEgsKA3VybBgDIAEoCRIMCgRvcGVuGAQgASgIKnEKCkVwaWNTdGF0dXMSGwoXRVBJQ19TVEFUVVNfVU5TUEVDSUZJRUQQABIWChJFUElDX1NUQVRVU19BQ1RJVkUQARIXChNFUElDX1NUQVRVU19TVEFMTEVEEAISFQoRRVBJQ19TVEFUVVNfRU1QVFkQAzKoAQoNVHJpYWdlU2VydmljZRJFCghHZXRCb2FyZBIaLnRyaWFnZS52MS5HZXRCb2FyZFJlcXVlc3QaGy50cmlhZ2UudjEuR2V0Qm9hcmRSZXNwb25zZSIAElAKC1N0cmVhbUJvYXJkEh0udHJpYWdlLnYxLlN0cmVhbUJvYXJkUmVxdWVzdBoeLnRyaWFnZS52MS5TdHJlYW1Cb2FyZFJlc3BvbnNlIgAwAWIGcHJvdG8z");
 
 /**
  * @generated from message triage.v1.GetBoardRequest
@@ -264,50 +264,6 @@ export const IssueRefSchema: GenMessage<IssueRef> = /*@__PURE__*/
   messageDesc(file_triage_v1_triage, 8);
 
 /**
- * @generated from message triage.v1.SetEpicStateRequest
- */
-export type SetEpicStateRequest = Message<"triage.v1.SetEpicStateRequest"> & {
-  /**
-   * @generated from field: int64 epic_number = 1;
-   */
-  epicNumber: bigint;
-
-  /**
-   * active=true drives the epic (clears the parked marker); active=false parks
-   * it, removing its ladder from the board.
-   *
-   * @generated from field: bool active = 2;
-   */
-  active: boolean;
-};
-
-/**
- * Describes the message triage.v1.SetEpicStateRequest.
- * Use `create(SetEpicStateRequestSchema)` to create a new message.
- */
-export const SetEpicStateRequestSchema: GenMessage<SetEpicStateRequest> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 9);
-
-/**
- * @generated from message triage.v1.SetEpicStateResponse
- */
-export type SetEpicStateResponse = Message<"triage.v1.SetEpicStateResponse"> & {
-  /**
-   * resulting status after the change
-   *
-   * @generated from field: triage.v1.EpicStatus status = 1;
-   */
-  status: EpicStatus;
-};
-
-/**
- * Describes the message triage.v1.SetEpicStateResponse.
- * Use `create(SetEpicStateResponseSchema)` to create a new message.
- */
-export const SetEpicStateResponseSchema: GenMessage<SetEpicStateResponse> = /*@__PURE__*/
-  messageDesc(file_triage_v1_triage, 10);
-
-/**
  * EpicStatus mirrors the algorithm's per-epic outcome.
  *
  * @generated from enum triage.v1.EpicStatus
@@ -349,8 +305,8 @@ export const EpicStatusSchema: GenEnum<EpicStatus> = /*@__PURE__*/
 /**
  * TriageService serves the derived dependency board: a graph computed from
  * GitHub issues, their sub-issue hierarchy, and native dependencies, induced by
- * the set of currently-active epics. The service is read-mostly; the only write
- * is toggling an epic's active state.
+ * the set of currently-active epics. It is read-only — the board reflects
+ * GitHub; writes are delegated to existing tooling.
  *
  * @generated from service triage.v1.TriageService
  */
@@ -377,16 +333,6 @@ export const TriageService: GenService<{
     methodKind: "server_streaming";
     input: typeof StreamBoardRequestSchema;
     output: typeof StreamBoardResponseSchema;
-  },
-  /**
-   * SetEpicState is the single write path: drive an epic or park it.
-   *
-   * @generated from rpc triage.v1.TriageService.SetEpicState
-   */
-  setEpicState: {
-    methodKind: "unary";
-    input: typeof SetEpicStateRequestSchema;
-    output: typeof SetEpicStateResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_triage_v1_triage, 0);

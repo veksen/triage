@@ -5,14 +5,12 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 
 	triagev1 "github.com/veksen/triage/gen/triage/v1"
 	"github.com/veksen/triage/gen/triage/v1/triagev1connect"
 	"github.com/veksen/triage/internal/engine"
-	"github.com/veksen/triage/internal/graph"
 )
 
 // Server implements triagev1connect.TriageServiceHandler over an Engine.
@@ -49,16 +47,4 @@ func (s *Server) StreamBoard(ctx context.Context, _ *connect.Request[triagev1.St
 			return err
 		}
 	}
-}
-
-// SetEpicState is the one write: drive or park an epic. The change touches the
-// in-memory projection only (see engine.SetEpicState). Unknown epics are a
-// NotFound error.
-func (s *Server) SetEpicState(_ context.Context, req *connect.Request[triagev1.SetEpicStateRequest]) (*connect.Response[triagev1.SetEpicStateResponse], error) {
-	msg := req.Msg
-	status, ok := s.engine.SetEpicState(graph.IssueID(msg.GetEpicNumber()), msg.GetActive())
-	if !ok {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("epic #%d not found", msg.GetEpicNumber()))
-	}
-	return connect.NewResponse(&triagev1.SetEpicStateResponse{Status: status}), nil
 }

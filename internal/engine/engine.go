@@ -33,12 +33,11 @@ type Config struct {
 // subscriber registration are serialized so a subscriber can never miss the
 // update that races its own registration.
 type Engine struct {
-	mu          sync.RWMutex
-	g           *graph.Graph
-	opts        graph.Options
-	repoURL     string
-	parkedLabel string
-	board       *triagev1.Board
+	mu      sync.RWMutex
+	g       *graph.Graph
+	opts    graph.Options
+	repoURL string
+	board   *triagev1.Board
 
 	subs   map[int]*subscriber
 	nextID int
@@ -60,11 +59,10 @@ func New(g *graph.Graph, cfg Config) *Engine {
 		opts.Active = graph.DefaultActive(parked)
 	}
 	e := &Engine{
-		g:           g,
-		opts:        opts,
-		repoURL:     cfg.RepoURL,
-		parkedLabel: parked,
-		subs:        map[int]*subscriber{},
+		g:       g,
+		opts:    opts,
+		repoURL: cfg.RepoURL,
+		subs:    map[int]*subscriber{},
 	}
 	e.board = e.compute()
 	return e
@@ -90,31 +88,6 @@ func (e *Engine) Apply(mutate func(g *graph.Graph)) {
 	e.broadcast(e.board)
 }
 
-// SetEpicState drives (active=true) or parks (active=false) an epic by toggling
-// the parked label on the projected issue, then recomputes and broadcasts. It
-// returns the epic's resulting status and whether the epic exists; a parked
-// epic leaves the board entirely and reports EPIC_STATUS_UNSPECIFIED.
-//
-// This mutates the in-memory projection only — it does NOT write back to GitHub
-// (HANDOFF decision #6). A park therefore survives only until the next GitHub
-// sync re-applies the issue; wiring write-back is an open decision for the sync
-// phase.
-func (e *Engine) SetEpicState(epic graph.IssueID, active bool) (triagev1.EpicStatus, bool) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	iss, ok := e.g.Issue(epic)
-	if !ok {
-		return triagev1.EpicStatus_EPIC_STATUS_UNSPECIFIED, false
-	}
-	iss.Labels = setLabel(iss.Labels, e.parkedLabel, !active)
-	e.g.AddIssue(iss)
-
-	e.board = e.compute()
-	e.broadcast(e.board)
-	return statusInBoard(e.board, int64(epic)), true
-}
-
 // compute runs the selection and renders the wire board. The caller holds e.mu.
 func (e *Engine) compute() *triagev1.Board {
 	res := graph.Compute(e.g, e.opts)
@@ -128,35 +101,4 @@ func (e *Engine) broadcast(b *triagev1.Board) {
 	for _, s := range e.subs {
 		s.push(b)
 	}
-}
-
-// setLabel returns a copy of labels with label added or removed. A copy keeps
-// the engine from mutating a slice the algorithm or a prior board may alias.
-func setLabel(labels []string, label string, present bool) []string {
-	out := make([]string, 0, len(labels)+1)
-	found := false
-	for _, l := range labels {
-		if l == label {
-			found = true
-			if !present {
-				continue
-			}
-		}
-		out = append(out, l)
-	}
-	if present && !found {
-		out = append(out, label)
-	}
-	return out
-}
-
-// statusInBoard finds an epic's status in a board, or UNSPECIFIED if the epic
-// is not on the board (e.g. just parked).
-func statusInBoard(b *triagev1.Board, epic int64) triagev1.EpicStatus {
-	for _, ev := range b.GetEpics() {
-		if ev.GetEpic().GetNumber() == epic {
-			return ev.GetStatus()
-		}
-	}
-	return triagev1.EpicStatus_EPIC_STATUS_UNSPECIFIED
 }

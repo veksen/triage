@@ -4,8 +4,8 @@ package triage.v1;
 
 // TriageService serves the derived dependency board: a graph computed from
 // GitHub issues, their sub-issue hierarchy, and native dependencies, induced by
-// the set of currently-active epics. The service is read-mostly; the only write
-// is toggling an epic's active state.
+// the set of currently-active epics. It is read-only — the board reflects
+// GitHub; writes are delegated to existing tooling.
 service TriageService {
   // GetBoard returns the current render set: one view per active epic.
   rpc GetBoard(GetBoardRequest) returns (GetBoardResponse) {}
@@ -15,9 +15,6 @@ service TriageService {
   // snapshots, not deltas — the set is small, so the stream is idempotent and
   // self-healing across reconnects.
   rpc StreamBoard(StreamBoardRequest) returns (stream StreamBoardResponse) {}
-
-  // SetEpicState is the single write path: drive an epic or park it.
-  rpc SetEpicState(SetEpicStateRequest) returns (SetEpicStateResponse) {}
 }
 
 message GetBoardRequest {}
@@ -87,15 +84,4 @@ message IssueRef {
   string title = 2;
   string url = 3;
   bool open = 4;
-}
-
-message SetEpicStateRequest {
-  int64 epic_number = 1;
-  // active=true drives the epic (clears the parked marker); active=false parks
-  // it, removing its ladder from the board.
-  bool active = 2;
-}
-
-message SetEpicStateResponse {
-  EpicStatus status = 1; // resulting status after the change
 }
