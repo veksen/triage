@@ -10,7 +10,6 @@ import type { Board } from "../gen/triage/v1/triage_pb";
 import { buildBoardGraph } from "../graph/buildBoardGraph";
 import { toElk } from "../graph/layout";
 import type { GraphNode } from "../graph/model";
-import { useSetEpicState } from "../useSetEpicState";
 
 interface LaidNode extends GraphNode {
   x: number;
@@ -65,8 +64,6 @@ export function GraphView({ board }: { board: Board | undefined }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const viewportRef = useRef<SVGGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-  const park = useSetEpicState();
-  const parkingNumber = park.isPending ? park.variables?.epicNumber : undefined;
 
   // Layout (async). Guard against a stale board resolving after a newer one.
   useEffect(() => {
@@ -189,12 +186,7 @@ export function GraphView({ board }: { board: Board | undefined }) {
               </g>
             ))}
           {laid?.nodes.map((n) => (
-            <GraphNodeView
-              key={n.id}
-              node={n}
-              onPark={n.kind === "epic" ? (epicNumber) => park.mutate({ epicNumber, active: false }) : undefined}
-              parking={n.number === parkingNumber}
-            />
+            <GraphNodeView key={n.id} node={n} />
           ))}
         </g>
       </svg>
@@ -235,15 +227,7 @@ export function GraphView({ board }: { board: Board | undefined }) {
   );
 }
 
-function GraphNodeView({
-  node,
-  onPark,
-  parking,
-}: {
-  node: LaidNode;
-  onPark?: (epicNumber: number) => void;
-  parking?: boolean;
-}) {
+function GraphNodeView({ node }: { node: LaidNode }) {
   const epicSlug = node.kind === "epic" && node.status !== undefined ? STATUS_SLUG[node.status] : "";
   const cls = `gnode gnode--${node.kind}${epicSlug ? ` gnode--epic-${epicSlug}` : ""}`;
 
@@ -260,43 +244,22 @@ function GraphNodeView({
   const title = node.title.length > maxChars ? node.title.slice(0, maxChars - 1) + "…" : node.title;
 
   return (
-    <g className="gnode-group">
-      <g transform={`translate(${node.x},${node.y})`}>
-        <a href={node.url || undefined} target="_blank" rel="noreferrer">
-          <rect className={cls} width={node.w} height={node.h} rx={9} />
-          <rect className={`gnode-accent gnode-accent--${node.kind}${epicSlug ? `-${epicSlug}` : ""}`} width={4} height={node.h} rx={2} />
-          <text className="gnode-num" x={14} y={22}>
-            #{node.number}
+    <g transform={`translate(${node.x},${node.y})`}>
+      <a href={node.url || undefined} target="_blank" rel="noreferrer">
+        <rect className={cls} width={node.w} height={node.h} rx={9} />
+        <rect className={`gnode-accent gnode-accent--${node.kind}${epicSlug ? `-${epicSlug}` : ""}`} width={4} height={node.h} rx={2} />
+        <text className="gnode-num" x={14} y={22}>
+          #{node.number}
+        </text>
+        {chip && (
+          <text className={chipCls} x={node.w - 12} y={22} textAnchor="end">
+            {chip}
           </text>
-          {chip && (
-            <text className={chipCls} x={node.w - 12} y={22} textAnchor="end">
-              {chip}
-            </text>
-          )}
-          <text className="gnode-title" x={14} y={42}>
-            {title}
-          </text>
-        </a>
-
-        {onPark && (
-          // Sibling of the <a>, on top, so the click parks rather than following
-          // the link. Revealed on node hover to keep the card clean.
-          <g
-            className={`park-node ${parking ? "is-parking" : ""}`}
-            transform={`translate(${node.w - 44},${node.h - 22})`}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (!parking) onPark(node.number);
-            }}
-          >
-            <rect className="park-node-bg" width={36} height={15} rx={5} />
-            <text className="park-node-text" x={18} y={11}>
-              {parking ? "…" : "park"}
-            </text>
-          </g>
         )}
-      </g>
+        <text className="gnode-title" x={14} y={42}>
+          {title}
+        </text>
+      </a>
     </g>
   );
 }
