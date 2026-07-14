@@ -18,10 +18,10 @@ export function toElk(graph: BoardGraph, aspectRatio = 1.6): ElkNode {
     id: "root",
     layoutOptions: {
       "elk.algorithm": "layered",
-      "elk.direction": "DOWN",
+      "elk.direction": "RIGHT",
       "elk.edgeRouting": "ORTHOGONAL",
-      "elk.layered.spacing.nodeNodeBetweenLayers": "88",
-      "elk.spacing.nodeNode": "40",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "72",
+      "elk.spacing.nodeNode": "20",
       "elk.layered.spacing.edgeNodeBetweenLayers": "32",
       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
       "elk.separateConnectedComponents": "true",
