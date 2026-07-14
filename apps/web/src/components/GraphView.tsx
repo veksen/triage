@@ -72,8 +72,10 @@ export function GraphView({ board }: { board: Board | undefined }) {
       return;
     }
     let cancelled = false;
+    const svg = svgRef.current;
+    const aspect = svg && svg.clientHeight > 0 ? svg.clientWidth / svg.clientHeight : 1.8;
     elk
-      .layout(toElk(graph) as ElkNode)
+      .layout(toElk(graph, aspect) as ElkNode)
       .then((res) => {
         if (cancelled) return;
         const meta = new Map(graph.nodes.map((n) => [n.id, n]));
