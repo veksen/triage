@@ -54,7 +54,16 @@ export function BoardView() {
       ) : isPending ? (
         <p className="status muted">Loading board…</p>
       ) : view === "board" ? (
-        <SwimlaneView board={shownBoard} />
+        <SwimlaneView
+          board={shownBoard}
+          onUntrack={(n) =>
+            setHidden((prev) => {
+              const next = new Set(prev);
+              next.add(n);
+              return next;
+            })
+          }
+        />
       ) : (
         <GraphView board={shownBoard} />
       )}

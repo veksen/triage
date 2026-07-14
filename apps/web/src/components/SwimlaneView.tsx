@@ -1,5 +1,6 @@
 import { EpicStatus } from "../gen/triage/v1/triage_pb";
 import type { Board, EpicView, Node as PbNode } from "../gen/triage/v1/triage_pb";
+import { RowMenu, openOnGitHub } from "./RowMenu";
 
 const STATUS_SLUG: Record<EpicStatus, string> = {
   [EpicStatus.UNSPECIFIED]: "unknown",
@@ -17,7 +18,13 @@ const STATUS_LABEL: Record<EpicStatus, string> = {
 // SwimlaneView is the readable board: one lane per epic, lanes stacked top to
 // bottom, and each epic's tasks laid out horizontally across its lane. Full
 // titles, no truncation — you scan down for epics and across for their work.
-export function SwimlaneView({ board }: { board: Board | undefined }) {
+export function SwimlaneView({
+  board,
+  onUntrack,
+}: {
+  board: Board | undefined;
+  onUntrack?: (epicNumber: number) => void;
+}) {
   const epics = board?.epics ?? [];
   if (epics.length === 0) {
     return (
@@ -31,7 +38,7 @@ export function SwimlaneView({ board }: { board: Board | undefined }) {
   return (
     <div className="lanes">
       {ordered.map((ev) => (
-        <Lane key={ev.epic ? String(ev.epic.number) : "?"} epic={ev} />
+        <Lane key={ev.epic ? String(ev.epic.number) : "?"} epic={ev} onUntrack={onUntrack} />
       ))}
     </div>
   );
@@ -41,12 +48,21 @@ function rank(s: EpicStatus): number {
   return s === EpicStatus.EMPTY || s === EpicStatus.UNSPECIFIED ? 1 : 0;
 }
 
-function Lane({ epic }: { epic: EpicView }) {
+function Lane({ epic, onUntrack }: { epic: EpicView; onUntrack?: (epicNumber: number) => void }) {
   const slug = STATUS_SLUG[epic.status];
   const stalled = epic.status === EpicStatus.STALLED;
   const tasks = stalled ? epic.blockers : epic.ready;
+  const epicNumber = epic.epic ? Number(epic.epic.number) : undefined;
+
+  const actions = [
+    ...(onUntrack && epicNumber !== undefined
+      ? [{ label: "Untrack this epic", onSelect: () => onUntrack(epicNumber), danger: true }]
+      : []),
+    { label: `Open #${epicNumber ?? "?"} on GitHub`, onSelect: () => openOnGitHub(epic.epic?.url) },
+  ];
 
   return (
+    <RowMenu actions={actions}>
     <section className={`lane lane--${slug}`}>
       <header className="lane-head">
         <div className="lane-title-row">
@@ -71,18 +87,21 @@ function Lane({ epic }: { epic: EpicView }) {
         )}
       </div>
     </section>
+    </RowMenu>
   );
 }
 
 function TaskCard({ node, kind }: { node: PbNode; kind: "ready" | "blocker" }) {
   const ref = node.issue;
   return (
-    <a className={`task task--${kind}`} href={ref?.url || undefined} target="_blank" rel="noreferrer">
-      <div className="task-meta">
-        <span className="task-num">#{ref ? String(ref.number) : "?"}</span>
-        {node.leverage > 0 && <span className="task-lev">unblocks {node.leverage}</span>}
-      </div>
-      <div className="task-title">{ref?.title || "(untitled)"}</div>
-    </a>
+    <RowMenu actions={[{ label: `Open #${ref ? String(ref.number) : "?"} on GitHub`, onSelect: () => openOnGitHub(ref?.url) }]}>
+      <a className={`task task--${kind}`} href={ref?.url || undefined} target="_blank" rel="noreferrer">
+        <div className="task-meta">
+          <span className="task-num">#{ref ? String(ref.number) : "?"}</span>
+          {node.leverage > 0 && <span className="task-lev">unblocks {node.leverage}</span>}
+        </div>
+        <div className="task-title">{ref?.title || "(untitled)"}</div>
+      </a>
+    </RowMenu>
   );
 }

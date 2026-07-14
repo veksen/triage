@@ -691,3 +691,36 @@ a:hover > .gnode {
   font-size: 0.85rem;
   line-height: 1.3;
 }
+
+/* --- right-click context menu (Base UI) --- */
+.ctx-positioner {
+  z-index: 50;
+  outline: none;
+}
+.ctx-popup {
+  min-width: 210px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.3rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+}
+.ctx-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+.ctx-item[data-highlighted] {
+  background: var(--panel-2);
+}
+.ctx-item--danger[data-highlighted] {
+  background: color-mix(in srgb, var(--stalled) 22%, var(--panel-2));
+  color: var(--stalled);
+}
