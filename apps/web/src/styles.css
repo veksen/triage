@@ -461,3 +461,136 @@ a:hover > .gnode {
 .gnode--blocked { stroke: color-mix(in srgb, var(--blocked) 60%, var(--border)); }
 .gnode-accent--blocked { fill: var(--blocked); }
 .swatch--blocked { border-color: var(--blocked); }
+
+/* --- epic filter dropdown --- */
+.filter {
+  position: relative;
+}
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.filter-btn strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.filter-btn:hover {
+  border-color: var(--accent);
+}
+.filter-btn .caret {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+.filter-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 11;
+  width: 560px;
+  max-width: calc(100vw - 3rem);
+  max-height: 70vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.4rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+.linkish {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.linkish:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.filter-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.filter-menu li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.15rem 0.2rem;
+  border-radius: 6px;
+}
+.filter-menu li:hover {
+  background: var(--panel-2);
+}
+.filter-menu label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+  padding: 0.3rem 0.3rem;
+  line-height: 1.35;
+}
+.filter-menu input[type="checkbox"] {
+  accent-color: var(--accent);
+  flex: none;
+}
+.fnum {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  flex: none;
+  padding-top: 0.05rem;
+}
+.ftitle {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.only {
+  flex: none;
+  align-self: center;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  cursor: pointer;
+  opacity: 0;
+}
+.filter-menu li:hover .only {
+  opacity: 1;
+}
+.only:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
