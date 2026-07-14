@@ -3,24 +3,22 @@ import { create } from "@bufbuild/protobuf";
 import { BoardSchema } from "../gen/triage/v1/triage_pb";
 import { useBoard } from "../useBoard";
 import { EpicFilter } from "./EpicFilter";
+import { SwimlaneView } from "./SwimlaneView";
 import { GraphView } from "./GraphView";
-import { ListView } from "./ListView";
 
-type View = "graph" | "list";
+type View = "board" | "graph";
 
 // BoardView owns the single board subscription, the view toggle, and the epic
-// filter. Filtering is client-side (the board is small and read-only): it hides
-// the deselected epics, and buildBoardGraph already drops any dependency edge
-// whose endpoints aren't rendered, so the graph prunes cleanly.
+// filter. The swimlane board is the default (readable: one lane per epic, tasks
+// across); the graph is opt-in for tracing blocking chains. Filtering is
+// client-side over the cached board.
 export function BoardView() {
   const { data: board, isPending, error } = useBoard();
-  const [view, setView] = useState<View>("graph");
+  const [view, setView] = useState<View>("board");
   const [hidden, setHidden] = useState<Set<number>>(new Set());
 
   const allEpics = board?.epics ?? [];
 
-  // Memoized so filtering doesn't rebuild the board (and re-run the ELK layout)
-  // on every render. Unfiltered → reuse the original board's identity.
   const shownBoard = useMemo(() => {
     if (!board || hidden.size === 0) return board;
     const epics = board.epics.filter((e) => !hidden.has(Number(e.epic?.number)));
@@ -42,11 +40,11 @@ export function BoardView() {
         <div className="spacer" />
         <EpicFilter epics={allEpics} hidden={hidden} onChange={setHidden} />
         <div className="toggle" role="tablist" aria-label="view">
+          <button role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""} onClick={() => setView("board")}>
+            board
+          </button>
           <button role="tab" aria-selected={view === "graph"} className={view === "graph" ? "on" : ""} onClick={() => setView("graph")}>
             graph
-          </button>
-          <button role="tab" aria-selected={view === "list"} className={view === "list" ? "on" : ""} onClick={() => setView("list")}>
-            list
           </button>
         </div>
       </header>
@@ -55,10 +53,10 @@ export function BoardView() {
         <p className="status error">Failed to load the board: {String(error)}</p>
       ) : isPending ? (
         <p className="status muted">Loading board…</p>
-      ) : view === "graph" ? (
-        <GraphView board={shownBoard} />
+      ) : view === "board" ? (
+        <SwimlaneView board={shownBoard} />
       ) : (
-        <ListView board={shownBoard} />
+        <GraphView board={shownBoard} />
       )}
     </main>
   );

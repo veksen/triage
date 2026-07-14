@@ -594,3 +594,100 @@ a:hover > .gnode {
   color: var(--text);
   border-color: var(--border);
 }
+
+/* --- swimlane board: one lane per epic, tasks across --- */
+.lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.lane {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--empty);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+.lane--active {
+  border-left-color: var(--ready);
+}
+.lane--stalled {
+  border-left-color: var(--stalled);
+}
+
+.lane-head {
+  flex: 0 0 260px;
+  min-width: 0;
+}
+.lane-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.lane-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.lane-count {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.lane-tasks {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-content: flex-start;
+}
+.lane-empty {
+  margin: 0.35rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.task {
+  display: block;
+  width: 240px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--ready);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  text-decoration: none;
+  color: var(--text);
+}
+.task--blocker {
+  border-left-color: var(--stalled);
+}
+.task:hover {
+  border-color: var(--accent);
+}
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.task-num {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.task-lev {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.task-title {
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
