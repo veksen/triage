@@ -47,20 +47,23 @@ func main() {
 	switch {
 	case owner != "" && repo != "":
 		client := triagesync.NewClient(owner, repo, os.Getenv("TRIAGE_GITHUB_TOKEN"))
-		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		log.Printf("backfilling board from %s/%s …", owner, repo)
 		built, err := triagesync.Backfill(ctx, client, mapper)
 		cancel()
 		if err != nil {
 			log.Fatalf("backfill from %s/%s failed: %v", owner, repo, err)
 		}
 		g = built
-		log.Printf("backfilled board from %s/%s", owner, repo)
 	case os.Getenv("TRIAGE_DEV_SEED") != "":
 		g = devSeed()
 		log.Print("loaded dev seed graph (TRIAGE_DEV_SEED set)")
 	}
 
 	eng := engine.New(g, engine.Config{RepoURL: repoURL})
+	if owner != "" && repo != "" {
+		log.Printf("backfilled %s/%s: %d active epics on the board", owner, repo, len(eng.Board().GetEpics()))
+	}
 
 	mux := http.NewServeMux()
 	path, handler := triagev1connect.NewTriageServiceHandler(server.New(eng))
