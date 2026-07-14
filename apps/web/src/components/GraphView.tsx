@@ -73,7 +73,11 @@ export function GraphView({ board }: { board: Board | undefined }) {
     }
     let cancelled = false;
     const svg = svgRef.current;
-    const aspect = svg && svg.clientHeight > 0 ? svg.clientWidth / svg.clientHeight : 1.8;
+    // Epic trees are wide, so ELK's packer stacks them unless we bias the target
+    // ratio well past the viewport's — push it up so the trees spread across the
+    // width instead of down a column.
+    const viewport = svg && svg.clientHeight > 0 ? svg.clientWidth / svg.clientHeight : 1.8;
+    const aspect = Math.max(3.5, viewport * 1.6);
     elk
       .layout(toElk(graph, aspect) as ElkNode)
       .then((res) => {
